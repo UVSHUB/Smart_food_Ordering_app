@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 
-const BASE_URL = 'http://172.28.9.153:5000/api/foods';
+const BASE_URL = 'http://10.94.178.167:5000/api/foods';
 
 const AddFoodScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -122,7 +122,7 @@ const AddFoodScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F8' },
   content: { padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 24, marginTop: 10 },
+  title: { fontSize: 24, fontWeight: '700', color: '#333', marginBottom: 24, marginTop: 10 },
   inputContainer: { marginBottom: 16 },
   label: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 8 },
   input: {
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     elevation: 2,
   },
-  submitBtnText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  submitBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });
 
 export default AddFoodScreen;

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 
 // UPDATE THIS WITH YOUR LOCAL IP ADDRESS
-const BASE_URL = 'http://172.28.9.153:5000/api/foods';
+const BASE_URL = 'http://10.94.178.167:5000/api/foods';
 
 const FoodListScreen = ({ navigation }) => {
   const [foods, setFoods] = useState([]);
@@ -60,7 +60,7 @@ const FoodListScreen = ({ navigation }) => {
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <Image
-        source={{ uri: item.image ? (item.image.startsWith('http') ? item.image : `http://172.28.9.153:5000${item.image}`) : 'https://via.placeholder.com/150' }}
+        source={{ uri: item.image ? (item.image.startsWith('http') ? item.image : `http://10.94.178.167:5000${item.image}`) : 'https://via.placeholder.com/150' }}
         style={styles.image}
       />
       <View style={styles.cardInfo}>
@@ -131,15 +131,15 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: 160, backgroundColor: '#E0E0E0' },
   cardInfo: { padding: 16 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  name: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  price: { fontSize: 18, fontWeight: 'bold', color: '#FF6C44' },
+  name: { fontSize: 18, fontWeight: '700', color: '#333' },
+  price: { fontSize: 18, fontWeight: '700', color: '#FF6C44' },
   category: { fontSize: 12, color: '#888', marginBottom: 8, textTransform: 'uppercase', fontWeight: '600' },
   description: { fontSize: 14, color: '#666', marginBottom: 16 },
   actionRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
   button: { paddingVertical: 6, paddingHorizontal: 16, borderRadius: 8 },
   editBtn: { backgroundColor: '#4A90E2' },
   deleteBtn: { backgroundColor: '#E02020' },
-  buttonText: { color: '#FFF', fontWeight: 'bold', fontSize: 14 },
+  buttonText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
   fab: {
     position: 'absolute',
     bottom: 24,
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
-  fabText: { fontSize: 32, color: '#FFF', fontWeight: 'bold', marginTop: -4 },
+  fabText: { fontSize: 32, color: '#FFF', fontWeight: '700', marginTop: -4 },
   errorText: { color: '#E02020', textAlign: 'center', marginTop: 20 },
   emptyText: { textAlign: 'center', color: '#888', marginTop: 40, fontSize: 16 },
 });
