@@ -111,17 +111,17 @@ function AdminFoodStack() {
       <Stack.Screen
         name="FoodList"
         component={FoodListScreen}
-        options={{ title: '☕  Menu Management' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="AddFood"
         component={AddFoodScreen}
-        options={{ title: 'Add New Item' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="EditFood"
         component={EditFoodScreen}
-        options={{ title: 'Edit Item' }}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

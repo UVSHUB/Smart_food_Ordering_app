@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
-  ScrollView, Alert, ActivityIndicator, SafeAreaView, StatusBar,
+  ScrollView, Alert, ActivityIndicator, SafeAreaView, StatusBar, Image, Platform
 } from 'react-native';
 import axios from 'axios';
+
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
 
 const BASE_URL = 'http://192.168.8.169:5001/api/foods';
 
@@ -66,8 +68,18 @@ const AddFoodScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={s.safeArea}>
+    <View style={s.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={C.mocha} />
+      
+      {/* Custom Top Bar */}
+      <View style={s.topBar}>
+        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={s.backIcon}>←</Text>
+        </TouchableOpacity>
+        <Text style={s.topBarTitle}>Add Item</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.content}
@@ -147,11 +159,22 @@ const AddFoodScreen = ({ navigation }) => {
             </ScrollView>
           </View>
 
-          {/* Image URL */}
+          {/* Image URL with Live Preview */}
           <View style={s.field}>
             <Text style={s.label}>
               Image URL <Text style={s.optional}>(optional)</Text>
             </Text>
+            
+            {image ? (
+              <View style={s.imagePreviewWrap}>
+                <Image source={{ uri: image }} style={s.imagePreview} />
+              </View>
+            ) : (
+              <View style={[s.imagePreviewWrap, s.emptyImagePreview]}>
+                <Text style={s.emptyImageText}>🖼️  No preview available</Text>
+              </View>
+            )}
+
             <TextInput
               style={s.input}
               value={image}
@@ -198,16 +221,28 @@ const AddFoodScreen = ({ navigation }) => {
         {/* Bottom spacing */}
         <View style={{ height: 30 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
-// ── Styles ────────────────────────────────────────────
 const s = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: C.cream,
   },
+  topBar: {
+    backgroundColor: C.mocha,
+    paddingTop: STATUSBAR_HEIGHT,
+    paddingBottom: 14,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
+  backIcon: { fontSize: 24, color: C.cream, fontWeight: '700' },
+  topBarTitle: { fontSize: 19, fontWeight: '700', color: C.cream },
+  
   scroll: { flex: 1 },
   content: {
     padding: 18,
@@ -317,6 +352,32 @@ const s = StyleSheet.create({
     fontWeight: '600',
   },
   chipTextSelected: { color: C.cream },
+
+  imagePreviewWrap: {
+    width: '100%',
+    height: 180,
+    borderRadius: 14,
+    marginBottom: 12,
+    overflow: 'hidden',
+    backgroundColor: C.fog,
+  },
+  imagePreview: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  emptyImagePreview: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E8DDD3',
+    borderStyle: 'dashed',
+  },
+  emptyImageText: {
+    color: C.textMuted,
+    fontSize: 14,
+    fontWeight: '600'
+  },
 
   textArea: { height: 110, paddingTop: 14 },
 
