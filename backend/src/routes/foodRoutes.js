@@ -14,12 +14,12 @@ const router = express.Router();
 router
   .route('/')
   .get(getFoods)
-  .post(protect, admin, upload.single('image'), createFood);
+  .post(upload.single('image'), createFood);
 
 router
   .route('/:id')
   .get(getFoodById)
-  .put(protect, admin, upload.single('image'), updateFood)
-  .delete(protect, admin, deleteFood);
+  .put(upload.single('image'), updateFood)
+  .delete(deleteFood);
 
 module.exports = router;
