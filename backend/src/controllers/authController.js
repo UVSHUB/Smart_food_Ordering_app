@@ -6,7 +6,7 @@ const generateToken = require('../utils/generateToken');
 // @access  Public
 const registerUser = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, isAdmin } = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -19,6 +19,7 @@ const registerUser = async (req, res, next) => {
       name,
       email,
       password,
+      isAdmin: isAdmin === true ? true : false,
     });
 
     if (user) {

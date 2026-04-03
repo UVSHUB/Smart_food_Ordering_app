@@ -61,13 +61,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password) => {
+  const register = async (name, email, password, isAdmin = false) => {
     setIsLoading(true);
     try {
       const { data } = await axios.post(`${BASE_URL}/auth/register`, {
         name,
         email,
         password,
+        isAdmin,
       });
 
       if (data && data.token) {

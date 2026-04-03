@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, SafeAreaView, ActivityIndicator, StatusBar, Alert
+  StyleSheet, SafeAreaView, ActivityIndicator, StatusBar, Alert, Switch
 } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -23,6 +23,7 @@ const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
@@ -32,7 +33,7 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     setLoading(true);
-    const result = await register(name, email, password);
+    const result = await register(name, email, password, isAdmin);
     setLoading(false);
 
     if (!result.success) {
@@ -91,6 +92,19 @@ const RegisterScreen = ({ navigation }) => {
             />
           </View>
 
+          <View style={[s.field, s.switchRow]}>
+            <View>
+              <Text style={s.label}>Register as Administrator</Text>
+              <Text style={s.metaText}>Gain access to dashboard commands</Text>
+            </View>
+            <Switch
+              value={isAdmin}
+              onValueChange={setIsAdmin}
+              trackColor={{ false: '#D1CBC4', true: C.caramel }}
+              thumbColor={C.milk}
+            />
+          </View>
+
           <TouchableOpacity
             style={[s.btn, loading && s.btnDisabled]}
             disabled={loading}
@@ -142,14 +156,22 @@ const s = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: C.espresso,
+    shadowColor: C.mocha,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 4,
   },
-  btnDisabled: { backgroundColor: C.latte, shadowOpacity: 0 },
+  btnDisabled: { backgroundColor: '#E8DDD3', shadowOpacity: 0 },
   btnText: { color: C.cream, fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
+  switchRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginTop: 10,
+    marginBottom: 20
+  },
+  metaText: { fontSize: 12, color: C.textMuted },
   footerWrap: { flexDirection: 'row', justifyContent: 'center', marginTop: 30 },
   footerText: { fontSize: 14, color: C.textMuted },
   footerLink: { fontSize: 14, fontWeight: '700', color: C.caramel },
