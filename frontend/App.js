@@ -14,7 +14,9 @@ import RegisterScreen from './src/screens/Auth/RegisterScreen';
 
 // ── Customer Screens ──
 import UserMenuScreen from './src/screens/Home/UserMenuScreen';
-import FoodDetailScreen from './src/screens/FoodDetails/FoodDetailScreen';
+import FoodDetailScreen from './src/screens/Home/FoodDetailScreen';
+import AddReviewScreen from './src/screens/Home/AddReviewScreen';
+import EditReviewScreen from './src/screens/Home/EditReviewScreen';
 
 // ── Admin Screens ──
 import FoodListScreen from './src/screens/MenuAdmin/FoodListScreen';
@@ -88,6 +90,16 @@ function CustomerStack() {
       <Stack.Screen
         name="FoodDetail"
         component={FoodDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AddReview"
+        component={AddReviewScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="EditReview"
+        component={EditReviewScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
