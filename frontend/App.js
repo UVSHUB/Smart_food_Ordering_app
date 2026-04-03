@@ -26,7 +26,6 @@ import ProfileScreen from './src/screens/Profile/ProfileScreen';
 import EditProfileScreen from './src/screens/Profile/EditProfileScreen';
 
 // ── Admin User Management ──
-import AdminDashboardScreen from './src/screens/UserAdmin/AdminDashboardScreen';
 import UserListScreen from './src/screens/UserAdmin/UserListScreen';
 import EditUserAdminScreen from './src/screens/UserAdmin/EditUserAdminScreen';
 
@@ -106,16 +105,9 @@ function ProfileStack() {
 }
 
 // ── Admin Menu Stack ──
-function AdminStack() {
+function AdminFoodStack() {
   return (
-    <Stack.Navigator screenOptions={screenOptions} initialRouteName="AdminDashboard">
-      <Stack.Screen
-        name="AdminDashboard"
-        component={AdminDashboardScreen}
-        options={{ headerShown: false }}
-      />
-      
-      {/* Food Management */}
+    <Stack.Navigator screenOptions={screenOptions} initialRouteName="FoodList">
       <Stack.Screen
         name="FoodList"
         component={FoodListScreen}
@@ -131,8 +123,14 @@ function AdminStack() {
         component={EditFoodScreen}
         options={{ title: 'Edit Item' }}
       />
+    </Stack.Navigator>
+  );
+}
 
-      {/* User Management */}
+// ── Admin User Management Stack ──
+function AdminUserStack() {
+  return (
+    <Stack.Navigator screenOptions={screenOptions} initialRouteName="UserList">
       <Stack.Screen
         name="UserList"
         component={UserListScreen}
@@ -183,15 +181,26 @@ function AppNav() {
           />
 
           {user && user.isAdmin && (
-            <Tab.Screen
-              name="ManageTab"
-              component={AdminStack}
-              options={{
-                tabBarIcon: ({ focused }) => (
-                  <TabIcon emoji="⚙️" label="Manage" focused={focused} />
-                ),
-              }}
-            />
+            <>
+              <Tab.Screen
+                name="ManageFoodTab"
+                component={AdminFoodStack}
+                options={{
+                  tabBarIcon: ({ focused }) => (
+                    <TabIcon emoji="⚙️" label="Food" focused={focused} />
+                  ),
+                }}
+              />
+              <Tab.Screen
+                name="ManageUserTab"
+                component={AdminUserStack}
+                options={{
+                  tabBarIcon: ({ focused }) => (
+                    <TabIcon emoji="👥" label="Users" focused={focused} />
+                  ),
+                }}
+              />
+            </>
           )}
 
           <Tab.Screen
