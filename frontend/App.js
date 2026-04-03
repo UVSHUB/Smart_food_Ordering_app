@@ -1,9 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
+
+// ── Auth Context ──
+import { AuthProvider, AuthContext } from './src/context/AuthContext';
+
+// ── Auth Screens ──
+import LoginScreen from './src/screens/Auth/LoginScreen';
+import RegisterScreen from './src/screens/Auth/RegisterScreen';
 
 // ── Customer Screens ──
 import UserMenuScreen from './src/screens/Home/UserMenuScreen';
@@ -13,6 +20,10 @@ import FoodDetailScreen from './src/screens/FoodDetails/FoodDetailScreen';
 import FoodListScreen from './src/screens/MenuAdmin/FoodListScreen';
 import AddFoodScreen from './src/screens/MenuAdmin/AddFoodScreen';
 import EditFoodScreen from './src/screens/MenuAdmin/EditFoodScreen';
+
+// ── Profile Screens ──
+import ProfileScreen from './src/screens/Profile/ProfileScreen';
+import EditProfileScreen from './src/screens/Profile/EditProfileScreen';
 
 // ── Palette ──
 const C = {
@@ -51,6 +62,16 @@ const TabIcon = ({ emoji, label, focused }) => (
   </View>
 );
 
+// ── Auth Stack ──
+function AuthStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+    </Stack.Navigator>
+  );
+}
+
 // ── Customer Menu Stack ──
 function CustomerStack() {
   return (
@@ -58,13 +79,23 @@ function CustomerStack() {
       <Stack.Screen
         name="UserMenu"
         component={UserMenuScreen}
-        options={{ title: '☕  Our Menu', headerShown: false }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="FoodDetail"
         component={FoodDetailScreen}
-        options={{ title: 'Item Details', headerShown: false }}
+        options={{ headerShown: false }}
       />
+    </Stack.Navigator>
+  );
+}
+
+// ── User Profile Stack ──
+function ProfileStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
     </Stack.Navigator>
   );
 }
@@ -92,39 +123,75 @@ function AdminStack() {
   );
 }
 
-// ── Main App ──
-export default function App() {
+// ── Navigation Wrapper ──
+function AppNav() {
+  const { isLoading, userToken, user } = useContext(AuthContext);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.cream }}>
+        <ActivityIndicator size="large" color={C.caramel} />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
-      <StatusBar style="light" />
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: styles.tabBar,
-          tabBarShowLabel: false,
-          tabBarHideOnKeyboard: true,
-        }}
-      >
-        <Tab.Screen
-          name="MenuTab"
-          component={CustomerStack}
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <TabIcon emoji="🍽️" label="Menu" focused={focused} />
-            ),
+      {userToken === null ? (
+        <AuthStack />
+      ) : (
+        <Tab.Navigator
+          screenOptions={{
+            headerShown: false,
+            tabBarStyle: styles.tabBar,
+            tabBarShowLabel: false,
+            tabBarHideOnKeyboard: true,
           }}
-        />
-        <Tab.Screen
-          name="ManageTab"
-          component={AdminStack}
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <TabIcon emoji="⚙️" label="Manage" focused={focused} />
-            ),
-          }}
-        />
-      </Tab.Navigator>
+        >
+          <Tab.Screen
+            name="MenuTab"
+            component={CustomerStack}
+            options={{
+              tabBarIcon: ({ focused }) => (
+                <TabIcon emoji="🍽️" label="Menu" focused={focused} />
+              ),
+            }}
+          />
+
+          {user && user.isAdmin && (
+            <Tab.Screen
+              name="ManageTab"
+              component={AdminStack}
+              options={{
+                tabBarIcon: ({ focused }) => (
+                  <TabIcon emoji="⚙️" label="Manage" focused={focused} />
+                ),
+              }}
+            />
+          )}
+
+          <Tab.Screen
+            name="ProfileTab"
+            component={ProfileStack}
+            options={{
+              tabBarIcon: ({ focused }) => (
+                <TabIcon emoji="👤" label="Profile" focused={focused} />
+              ),
+            }}
+          />
+        </Tab.Navigator>
+      )}
     </NavigationContainer>
+  );
+}
+
+// ── Main App Provider ──
+export default function App() {
+  return (
+    <AuthProvider>
+      <StatusBar style="light" />
+      <AppNav />
+    </AuthProvider>
   );
 }
 
