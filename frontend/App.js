@@ -1,59 +1,167 @@
 import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 
+// ── Customer Screens ──
+import UserMenuScreen from './src/screens/Home/UserMenuScreen';
+import FoodDetailScreen from './src/screens/FoodDetails/FoodDetailScreen';
+
+// ── Admin Screens ──
 import FoodListScreen from './src/screens/MenuAdmin/FoodListScreen';
 import AddFoodScreen from './src/screens/MenuAdmin/AddFoodScreen';
 import EditFoodScreen from './src/screens/MenuAdmin/EditFoodScreen';
 
-const Stack = createNativeStackNavigator();
+// ── Palette ──
+const C = {
+  mocha:    '#4A2C2A',
+  walnut:   '#6B4226',
+  caramel:  '#A0673C',
+  cream:    '#FFF8F0',
+  milk:     '#FFFFFF',
+  fog:      '#F5EDE4',
+  textDark: '#2D1810',
+  textMuted:'#8C7B6F',
+};
 
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// ── Shared header options ──
+const screenOptions = {
+  headerStyle: { backgroundColor: C.mocha },
+  headerTintColor: C.cream,
+  headerTitleStyle: { fontWeight: '700', fontSize: 18, letterSpacing: 0.3 },
+  headerShadowVisible: false,
+  animation: 'slide_from_right',
+  contentStyle: { backgroundColor: C.cream },
+};
+
+// ── Tab Icon Component ──
+const TabIcon = ({ emoji, label, focused }) => (
+  <View style={styles.tabIconWrap}>
+    <Text style={[styles.tabEmoji, focused && styles.tabEmojiActive]}>
+      {emoji}
+    </Text>
+    <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>
+      {label}
+    </Text>
+  </View>
+);
+
+// ── Customer Menu Stack ──
+function CustomerStack() {
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen
+        name="UserMenu"
+        component={UserMenuScreen}
+        options={{ title: '☕  Our Menu', headerShown: false }}
+      />
+      <Stack.Screen
+        name="FoodDetail"
+        component={FoodDetailScreen}
+        options={{ title: 'Item Details', headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// ── Admin Menu Stack ──
+function AdminStack() {
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen
+        name="FoodList"
+        component={FoodListScreen}
+        options={{ title: '☕  Menu Management' }}
+      />
+      <Stack.Screen
+        name="AddFood"
+        component={AddFoodScreen}
+        options={{ title: 'Add New Item' }}
+      />
+      <Stack.Screen
+        name="EditFood"
+        component={EditFoodScreen}
+        options={{ title: 'Edit Item' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// ── Main App ──
 export default function App() {
   return (
     <NavigationContainer>
       <StatusBar style="light" />
-      <Stack.Navigator
-        initialRouteName="FoodList"
+      <Tab.Navigator
         screenOptions={{
-          headerStyle: {
-            backgroundColor: '#4A2C2A',
-          },
-          headerTintColor: '#FFF8F0',
-          headerTitleStyle: {
-            fontWeight: '700',
-            fontSize: 18,
-            letterSpacing: 0.3,
-          },
-          headerShadowVisible: false,
-          animation: 'slide_from_right',
-          contentStyle: {
-            backgroundColor: '#FFF8F0',
-          },
+          headerShown: false,
+          tabBarStyle: styles.tabBar,
+          tabBarShowLabel: false,
+          tabBarHideOnKeyboard: true,
         }}
       >
-        <Stack.Screen
-          name="FoodList"
-          component={FoodListScreen}
+        <Tab.Screen
+          name="MenuTab"
+          component={CustomerStack}
           options={{
-            title: '☕  Menu Management',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon emoji="🍽️" label="Menu" focused={focused} />
+            ),
           }}
         />
-        <Stack.Screen
-          name="AddFood"
-          component={AddFoodScreen}
+        <Tab.Screen
+          name="ManageTab"
+          component={AdminStack}
           options={{
-            title: 'Add New Item',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon emoji="⚙️" label="Manage" focused={focused} />
+            ),
           }}
         />
-        <Stack.Screen
-          name="EditFood"
-          component={EditFoodScreen}
-          options={{
-            title: 'Edit Item',
-          }}
-        />
-      </Stack.Navigator>
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
+
+// ── Styles ──
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: C.milk,
+    borderTopWidth: 0,
+    height: 72,
+    paddingBottom: 8,
+    paddingTop: 8,
+    shadowColor: C.mocha,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  tabIconWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 4,
+  },
+  tabEmoji: {
+    fontSize: 22,
+    marginBottom: 4,
+    opacity: 0.5,
+  },
+  tabEmojiActive: {
+    opacity: 1,
+  },
+  tabLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: C.textMuted,
+  },
+  tabLabelActive: {
+    color: C.walnut,
+    fontWeight: '700',
+  },
+});
