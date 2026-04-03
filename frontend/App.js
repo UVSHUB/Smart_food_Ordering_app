@@ -1,20 +1,43 @@
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+
+// Import our new screens
+import FoodListScreen from './src/screens/MenuAdmin/FoodListScreen';
+import AddFoodScreen from './src/screens/MenuAdmin/AddFoodScreen';
+import EditFoodScreen from './src/screens/MenuAdmin/EditFoodScreen';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+    <NavigationContainer>
       <StatusBar style="auto" />
-    </View>
+      <Stack.Navigator 
+        initialRouteName="FoodList"
+        screenOptions={{
+          headerStyle: { backgroundColor: '#FF6C44' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      >
+        <Stack.Screen 
+          name="FoodList" 
+          component={FoodListScreen} 
+          options={{ title: 'Menu Management' }} 
+        />
+        <Stack.Screen 
+          name="AddFood" 
+          component={AddFoodScreen} 
+          options={{ title: 'Add New Item' }} 
+        />
+        <Stack.Screen 
+          name="EditFood" 
+          component={EditFoodScreen} 
+          options={{ title: 'Edit Item' }} 
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
