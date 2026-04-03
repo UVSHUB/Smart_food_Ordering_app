@@ -69,6 +69,8 @@ const updateUserById = async (req, res, next) => {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
 
+      user.isAdmin = req.body.isAdmin !== undefined ? req.body.isAdmin : user.isAdmin;
+
       if (req.body.password) {
         user.password = req.body.password;
       }
@@ -93,7 +95,7 @@ const updateUserById = async (req, res, next) => {
 
 // @desc    Delete user
 // @route   DELETE /api/users/:id
-// @access  Private
+// @access  Private/Admin
 const deleteUserById = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -110,4 +112,40 @@ const deleteUserById = async (req, res, next) => {
   }
 };
 
-module.exports = { getUserProfile, updateUserProfile, updateUserById, deleteUserById };
+// @desc    Get all users
+// @route   GET /api/users
+// @access  Private/Admin
+const getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({});
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get user by ID
+// @route   GET /api/users/:id
+// @access  Private/Admin
+const getUserById = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404);
+      throw new Error('User not found');
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { 
+  getUserProfile, 
+  updateUserProfile, 
+  updateUserById, 
+  deleteUserById,
+  getUsers,
+  getUserById
+};

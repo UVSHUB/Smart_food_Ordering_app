@@ -25,6 +25,11 @@ import EditFoodScreen from './src/screens/MenuAdmin/EditFoodScreen';
 import ProfileScreen from './src/screens/Profile/ProfileScreen';
 import EditProfileScreen from './src/screens/Profile/EditProfileScreen';
 
+// ── Admin User Management ──
+import AdminDashboardScreen from './src/screens/UserAdmin/AdminDashboardScreen';
+import UserListScreen from './src/screens/UserAdmin/UserListScreen';
+import EditUserAdminScreen from './src/screens/UserAdmin/EditUserAdminScreen';
+
 // ── Palette ──
 const C = {
   mocha:    '#4A2C2A',
@@ -103,7 +108,14 @@ function ProfileStack() {
 // ── Admin Menu Stack ──
 function AdminStack() {
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
+    <Stack.Navigator screenOptions={screenOptions} initialRouteName="AdminDashboard">
+      <Stack.Screen
+        name="AdminDashboard"
+        component={AdminDashboardScreen}
+        options={{ headerShown: false }}
+      />
+      
+      {/* Food Management */}
       <Stack.Screen
         name="FoodList"
         component={FoodListScreen}
@@ -118,6 +130,18 @@ function AdminStack() {
         name="EditFood"
         component={EditFoodScreen}
         options={{ title: 'Edit Item' }}
+      />
+
+      {/* User Management */}
+      <Stack.Screen
+        name="UserList"
+        component={UserListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="EditUserAdmin"
+        component={EditUserAdminScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
