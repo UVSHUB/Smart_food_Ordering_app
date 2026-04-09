@@ -4,17 +4,16 @@ import {
   StyleSheet, SafeAreaView, ActivityIndicator, StatusBar, Alert, Switch
 } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
+import { MaterialIcons } from '@expo/vector-icons';
 
-// ── Premium Brown & White Palette ──────────────────────
+// ── Ultra Premium Modern Palette ──────────────────────
 const C = {
-  mocha:    '#4A2C2A',
-  walnut:   '#6B4226',
-  caramel:  '#A0673C',
-  cream:    '#FFF8F0',
-  milk:     '#FFFFFF',
-  fog:      '#F5EDE4',
-  textDark: '#2D1810',
-  textMuted:'#8C7B6F',
+  primary:     '#FA4A0C', 
+  bg:          '#FFFFFF', 
+  surface:     '#F9F9FB', 
+  textDark:    '#1A1A1A', 
+  textMuted:   '#9A9A9D', 
+  border:      '#E8E8E8',
 };
 
 const RegisterScreen = ({ navigation }) => {
@@ -43,10 +42,9 @@ const RegisterScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={s.safeArea}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
       <View style={s.container}>
         <View style={s.headerWrap}>
-          <Text style={s.emoji}>👋</Text>
           <Text style={s.title}>Create Account</Text>
           <Text style={s.subtitle}>Sign up to order delicious meals</Text>
         </View>
@@ -57,7 +55,7 @@ const RegisterScreen = ({ navigation }) => {
             <TextInput
               style={s.input}
               placeholder="e.g. John Doe"
-              placeholderTextColor="#C4B8AC"
+              placeholderTextColor={C.textMuted}
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
@@ -68,8 +66,8 @@ const RegisterScreen = ({ navigation }) => {
             <Text style={s.label}>Email Address</Text>
             <TextInput
               style={s.input}
-              placeholder="e.g. uvs@example.com"
-              placeholderTextColor="#C4B8AC"
+              placeholder="e.g. user@example.com"
+              placeholderTextColor={C.textMuted}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -83,7 +81,7 @@ const RegisterScreen = ({ navigation }) => {
             <TextInput
               style={s.input}
               placeholder="••••••••"
-              placeholderTextColor="#C4B8AC"
+              placeholderTextColor={C.textMuted}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -100,8 +98,8 @@ const RegisterScreen = ({ navigation }) => {
             <Switch
               value={isAdmin}
               onValueChange={setIsAdmin}
-              trackColor={{ false: '#D1CBC4', true: C.caramel }}
-              thumbColor={C.milk}
+              trackColor={{ false: '#E8E8E8', true: C.primary }}
+              thumbColor={C.bg}
             />
           </View>
 
@@ -112,7 +110,7 @@ const RegisterScreen = ({ navigation }) => {
             activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color={C.cream} />
+              <ActivityIndicator color={C.bg} />
             ) : (
               <Text style={s.btnText}>Register</Text>
             )}
@@ -131,39 +129,38 @@ const RegisterScreen = ({ navigation }) => {
 };
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: C.cream },
+  safeArea: { flex: 1, backgroundColor: C.bg },
   container: { flex: 1, justifyContent: 'center', paddingHorizontal: 30 },
-  headerWrap: { alignItems: 'center', marginBottom: 50 },
-  emoji: { fontSize: 60, marginBottom: 16 },
-  title: { fontSize: 26, fontWeight: '800', color: C.textDark, marginBottom: 8, letterSpacing: -0.5 },
-  subtitle: { fontSize: 15, color: C.textMuted },
+  headerWrap: { alignItems: 'flex-start', marginBottom: 40, marginTop: 20 },
+  title: { fontSize: 32, fontWeight: '800', color: C.textDark, marginBottom: 8, letterSpacing: -0.5 },
+  subtitle: { fontSize: 16, color: C.textMuted },
   formWrap: {},
   field: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', color: C.textDark, marginBottom: 8 },
+  label: { fontSize: 13, fontWeight: '700', color: C.textMuted, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
   input: {
-    backgroundColor: C.milk,
-    borderWidth: 1.5,
-    borderColor: '#E8DDD3',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 15,
+    backgroundColor: '#FBFBFB',
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     fontSize: 16,
     color: C.textDark,
   },
   btn: {
-    backgroundColor: C.caramel,
-    borderRadius: 14,
-    paddingVertical: 16,
+    backgroundColor: C.primary,
+    borderRadius: 16,
+    paddingVertical: 18,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: C.mocha,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 6,
   },
-  btnDisabled: { backgroundColor: '#E8DDD3', shadowOpacity: 0 },
-  btnText: { color: C.cream, fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
+  btnDisabled: { opacity: 0.7 },
+  btnText: { color: C.bg, fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
   switchRow: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -171,10 +168,10 @@ const s = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20
   },
-  metaText: { fontSize: 12, color: C.textMuted },
+  metaText: { fontSize: 12, color: C.textMuted, marginTop: 4 },
   footerWrap: { flexDirection: 'row', justifyContent: 'center', marginTop: 30 },
   footerText: { fontSize: 14, color: C.textMuted },
-  footerLink: { fontSize: 14, fontWeight: '700', color: C.caramel },
+  footerLink: { fontSize: 14, fontWeight: '700', color: C.primary },
 });
 
 export default RegisterScreen;

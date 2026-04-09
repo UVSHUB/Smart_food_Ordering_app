@@ -12,19 +12,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 const BASE_URL = 'http://192.168.8.169:5001/api/foods';
 const { width } = Dimensions.get('window');
 
-// ── Premium Brown & White Palette ──────────────────────
+// ── Ultra Premium Modern Palette ──────────────────────
 const C = {
-  espresso:    '#3B1F1A',
-  mocha:       '#4A2C2A',
-  walnut:      '#6B4226',
-  caramel:     '#A0673C',
-  latte:       '#C49A6C',
-  cream:       '#FFF8F0',
-  milk:        '#FFFFFF',
-  fog:         '#F5EDE4',
-  textDark:    '#2D1810',
-  textMuted:   '#8C7B6F',
-  star:        '#E5A100',
+  primary:     '#FA4A0C', // Vibrant Foodie Orange
+  bg:          '#F9F9FB', // Very light cool gray
+  surface:     '#FFFFFF', // Cards & Elements
+  textDark:    '#1A1A1A', // Deep black for crisp text
+  textMuted:   '#9A9A9D', // Subtle gray
+  star:        '#FFC107', // Warning/Star Gold
+  border:      '#F0F0F0',
 };
 
 const CATEGORIES = ['All', 'Meals', 'Drinks', 'Snacks', 'Desserts'];
@@ -80,41 +76,45 @@ const UserMenuScreen = ({ navigation }) => {
     if (filtered.length === 0) return null;
     const hero = filtered[0];
     return (
-      <TouchableOpacity
-        style={s.heroCard}
-        activeOpacity={0.9}
-        onPress={() => navigation.navigate('FoodDetail', { food: hero })}
-      >
-        <Image
-          source={{
-            uri: hero.image
-              ? hero.image.startsWith('http')
-                ? hero.image
-                : `http://192.168.8.169:5001${hero.image}`
-              : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600',
-          }}
-          style={s.heroImage}
-        />
-        <View style={s.heroOverlay} />
-        <View style={s.heroBadge}>
-          <Text style={s.heroBadgeText}>⭐  Featured</Text>
-        </View>
-        <View style={s.heroContent}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-            <MaterialIcons name={CATEGORY_ICON[hero.category] || 'room-service'} size={14} color={'rgba(255,248,240,0.85)'} style={{ marginRight: 6 }} />
-            <Text style={s.heroCategory}>
-              {hero.category}
-            </Text>
+      <View style={s.heroWrapper}>
+        <TouchableOpacity
+          style={s.heroCard}
+          activeOpacity={0.9}
+          onPress={() => navigation.navigate('FoodDetail', { food: hero })}
+        >
+          <Image
+            source={{
+              uri: hero.image
+                ? hero.image.startsWith('http')
+                  ? hero.image
+                  : `http://192.168.8.169:5001${hero.image}`
+                : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600',
+            }}
+            style={s.heroImage}
+          />
+          <View style={s.heroOverlay} />
+          
+          <View style={s.heroBadge}>
+            <MaterialIcons name="star" size={12} color={C.primary} style={{ marginRight: 4 }} />
+            <Text style={s.heroBadgeText}>Featured</Text>
           </View>
-          <Text style={s.heroName}>{hero.name}</Text>
-          <View style={s.heroPriceRow}>
-            <Text style={s.heroPrice}>${(hero.price || 0).toFixed(2)}</Text>
-            <View style={s.heroViewBtn}>
-              <Text style={s.heroViewText}>View →</Text>
+          
+          <View style={s.heroContent}>
+            <View style={s.heroCategoryRow}>
+              <MaterialIcons name={CATEGORY_ICON[hero.category] || 'room-service'} size={12} color={'rgba(255,255,255,0.85)'} />
+              <Text style={s.heroCategory}>{hero.category}</Text>
+            </View>
+            <Text style={s.heroName}>{hero.name}</Text>
+            <View style={s.heroPriceRow}>
+              <Text style={s.heroPrice}>${(hero.price || 0).toFixed(2)}</Text>
+              <View style={s.heroViewBtn}>
+                <Text style={s.heroViewText}>View Item</Text>
+                <MaterialIcons name="arrow-forward" size={12} color={C.textDark} style={{ marginLeft: 4 }} />
+              </View>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -136,8 +136,8 @@ const UserMenuScreen = ({ navigation }) => {
         style={s.gridImage}
       />
       <View style={s.gridBody}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-          <MaterialIcons name={CATEGORY_ICON[item.category] || 'room-service'} size={12} color={C.caramel} style={{ marginRight: 4 }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+          <MaterialIcons name={CATEGORY_ICON[item.category] || 'room-service'} size={12} color={C.textMuted} style={{ marginRight: 4 }} />
           <Text style={s.gridCategory}>
             {item.category || 'General'}
           </Text>
@@ -150,7 +150,7 @@ const UserMenuScreen = ({ navigation }) => {
           <Text style={s.gridPrice}>${(item.price || 0).toFixed(2)}</Text>
           {item.rating > 0 && (
             <View style={s.ratingRow}>
-              <Text style={s.ratingStar}>★</Text>
+              <MaterialIcons name="star" size={14} color={C.star} />
               <Text style={s.ratingVal}>{item.rating.toFixed(1)}</Text>
             </View>
           )}
@@ -159,32 +159,24 @@ const UserMenuScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  // Grid data (skip first item since it's the hero)
   const gridData = filtered.length > 1 ? filtered.slice(1) : [];
 
-  // ── Loading ──────────────────────────────────────────
   if (loading) {
     return (
       <View style={s.centered}>
-        <View style={s.loadingCard}>
-          <ActivityIndicator size="large" color={C.caramel} />
-          <Text style={s.loadingText}>Loading Menu...</Text>
-        </View>
+        <ActivityIndicator size="large" color={C.primary} />
       </View>
     );
   }
 
-  // ── Main ─────────────────────────────────────────────
   return (
-    <View style={s.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={C.mocha} />
+    <SafeAreaView style={s.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       {/* Top Header Bar */}
       <View style={s.topBar}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <MaterialIcons name="restaurant" size={20} color={C.cream} style={{ marginRight: 8 }} />
-          <Text style={s.topBarTitle}>Smart Food</Text>
-        </View>
+        <MaterialIcons name="restaurant" size={24} color={C.primary} style={{ marginRight: 8 }} />
+        <Text style={s.topBarTitle}>Smart Food</Text>
       </View>
 
       <ScrollView
@@ -193,32 +185,30 @@ const UserMenuScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => fetchFoods(true)}
-            tintColor={C.caramel}
-            colors={[C.caramel]}
+            tintColor={C.primary}
+            colors={[C.primary]}
           />
         }
       >
         {/* Greeting */}
         <View style={s.greetingWrap}>
-          <View>
-            <Text style={s.greetingSub}>Welcome back 👋</Text>
-            <Text style={s.greetingMain}>What would you like to eat?</Text>
-          </View>
+          <Text style={s.greetingSub}>Delivery within 30 min</Text>
+          <Text style={s.greetingMain}>Delicious food ready to be delivered to you.</Text>
         </View>
 
         {/* Search */}
         <View style={s.searchWrap}>
-          <MaterialIcons name="search" size={20} color={C.textMuted} style={{ marginRight: 8 }} />
+          <MaterialIcons name="search" size={22} color={C.textMuted} style={{ marginRight: 10 }} />
           <TextInput
             style={s.searchInput}
-            placeholder="Search for food..."
-            placeholderTextColor="#B5A99A"
+            placeholder="What are you craving?"
+            placeholderTextColor={C.textMuted}
             value={search}
             onChangeText={setSearch}
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch('')}>
-              <Text style={s.searchClear}>✕</Text>
+              <MaterialIcons name="close" size={22} color={C.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -229,24 +219,27 @@ const UserMenuScreen = ({ navigation }) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={s.categoryRow}
         >
-          {CATEGORIES.map((cat) => (
-            <TouchableOpacity
-              key={cat}
-              style={[s.catChip, activeCategory === cat && s.catChipActive]}
-              onPress={() => setActiveCategory(cat)}
-              activeOpacity={0.7}
-            >
-              <MaterialIcons name={CATEGORY_ICON[cat]} size={16} color={activeCategory === cat ? C.cream : C.textDark} style={{ marginRight: 6 }} />
-              <Text
-                style={[
-                  s.catLabel,
-                  activeCategory === cat && s.catLabelActive,
-                ]}
+          {CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat;
+            return (
+              <TouchableOpacity
+                key={cat}
+                style={[s.catChip, isActive && s.catChipActive]}
+                onPress={() => setActiveCategory(cat)}
+                activeOpacity={0.7}
               >
-                {cat}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <MaterialIcons 
+                  name={CATEGORY_ICON[cat]} 
+                  size={18} 
+                  color={isActive ? C.surface : C.textMuted} 
+                  style={{ marginRight: 6 }} 
+                />
+                <Text style={[s.catLabel, isActive && s.catLabelActive]}>
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
         </ScrollView>
 
         {/* Hero / Featured */}
@@ -255,7 +248,7 @@ const UserMenuScreen = ({ navigation }) => {
         {/* Section title */}
         {gridData.length > 0 && (
           <View style={s.sectionRow}>
-            <Text style={s.sectionTitle}>Popular Items</Text>
+            <Text style={s.sectionTitle}>Popular Choices</Text>
             <Text style={s.sectionCount}>{gridData.length} items</Text>
           </View>
         )}
@@ -272,307 +265,148 @@ const UserMenuScreen = ({ navigation }) => {
         ) : filtered.length === 0 ? (
           <View style={s.emptyWrap}>
             <View style={s.emptyCircle}>
-              <MaterialIcons name="restaurant" size={40} color={C.walnut} />
+              <MaterialIcons name="dinner-dining" size={48} color={C.primary} />
             </View>
             <Text style={s.emptyTitle}>No items found</Text>
             <Text style={s.emptySub}>
               {search
-                ? 'Try a different search term'
-                : 'No items in this category yet'}
+                ? 'Try a different search term.'
+                : 'No items in this category yet.'}
             </Text>
           </View>
         ) : null}
 
-        <View style={{ height: 30 }} />
+        <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 // ── Styles ────────────────────────────────────────────
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
-
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: C.cream },
+  safeArea: { flex: 1, backgroundColor: C.bg },
 
   // Top header bar
   topBar: {
-    backgroundColor: C.mocha,
-    paddingTop: STATUSBAR_HEIGHT,
-    paddingBottom: 14,
-    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 10 : 16,
+    paddingBottom: 10,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: C.bg,
   },
-  topBarTitle: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: C.cream,
-    letterSpacing: 0.3,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: C.cream,
-  },
-  loadingCard: {
-    backgroundColor: C.milk,
-    borderRadius: 20,
-    paddingVertical: 36,
-    paddingHorizontal: 50,
-    alignItems: 'center',
-    shadowColor: C.espresso,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  loadingText: { marginTop: 14, color: C.textMuted, fontSize: 15, fontWeight: '500' },
+  topBarTitle: { fontSize: 20, fontWeight: '800', color: C.textDark, letterSpacing: -0.5 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
 
   // Greeting
-  greetingWrap: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 6,
-  },
-  greetingSub: { fontSize: 14, color: C.textMuted, marginBottom: 4 },
-  greetingMain: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: C.textDark,
-    letterSpacing: -0.5,
-  },
+  greetingWrap: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 10 },
+  greetingSub: { fontSize: 13, color: C.primary, fontWeight: '700', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 },
+  greetingMain: { fontSize: 28, fontWeight: '800', color: C.textDark, letterSpacing: -0.5, lineHeight: 36, paddingRight: 40 },
 
   // Search
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.milk,
-    marginHorizontal: 20,
+    backgroundColor: '#F3F3F5',
+    marginHorizontal: 24,
     marginTop: 16,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 4,
-    borderWidth: 1.5,
-    borderColor: '#E8DDD3',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
-  searchIcon: { fontSize: 16, marginRight: 8 },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: C.textDark,
-    paddingVertical: 12,
-  },
-  searchClear: {
-    fontSize: 16,
-    color: C.textMuted,
-    padding: 4,
-  },
+  searchInput: { flex: 1, fontSize: 15, color: C.textDark },
 
   // Categories
-  categoryRow: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 8,
-  },
+  categoryRow: { paddingHorizontal: 24, paddingVertical: 20 },
   catChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.milk,
+    backgroundColor: C.surface,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
-    borderWidth: 1.5,
-    borderColor: '#E8DDD3',
-    marginRight: 8,
+    paddingVertical: 12,
+    borderRadius: 30,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  catChipActive: {
-    backgroundColor: C.walnut,
-    borderColor: C.walnut,
-  },
-  catEmoji: { fontSize: 15, marginRight: 6 },
-  catLabel: { fontSize: 13, fontWeight: '600', color: C.textMuted },
-  catLabelActive: { color: C.cream },
+  catChipActive: { backgroundColor: C.primary },
+  catLabel: { fontSize: 14, fontWeight: '600', color: C.textMuted },
+  catLabelActive: { color: C.surface },
 
   // Hero
-  heroCard: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 22,
-    overflow: 'hidden',
-    backgroundColor: C.milk,
-    shadowColor: C.espresso,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
+  heroWrapper: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.06,
     shadowRadius: 20,
-    elevation: 8,
+    elevation: 6,
   },
-  heroImage: {
-    width: '100%',
-    height: 210,
-    backgroundColor: C.fog,
+  heroCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    backgroundColor: C.surface,
   },
+  heroImage: { width: '100%', height: 240, backgroundColor: C.border },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(59,31,26,0.35)',
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   heroBadge: {
     position: 'absolute',
-    top: 14,
-    left: 14,
-    backgroundColor: 'rgba(255,248,240,0.93)',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
+    top: 16, left: 16,
+    backgroundColor: C.surface,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 30,
+    flexDirection: 'row', alignItems: 'center'
   },
-  heroBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: C.walnut,
-    letterSpacing: 0.3,
-  },
-  heroContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 18,
-  },
-  heroCategory: {
-    fontSize: 12,
-    color: 'rgba(255,248,240,0.85)',
-    fontWeight: '600',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  heroName: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: C.cream,
-    marginBottom: 10,
-    letterSpacing: -0.3,
-  },
-  heroPriceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  heroPrice: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: C.cream,
-  },
-  heroViewBtn: {
-    backgroundColor: C.cream,
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  heroViewText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: C.walnut,
-  },
+  heroBadgeText: { fontSize: 11, fontWeight: '800', color: C.primary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  heroContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20 },
+  heroCategoryRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  heroCategory: { fontSize: 11, color: 'rgba(255,255,255,0.9)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginLeft: 4 },
+  heroName: { fontSize: 26, fontWeight: '800', color: C.surface, marginBottom: 16, letterSpacing: -0.5 },
+  heroPriceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  heroPrice: { fontSize: 22, fontWeight: '800', color: C.surface },
+  heroViewBtn: { backgroundColor: C.surface, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center' },
+  heroViewText: { fontSize: 13, fontWeight: '800', color: C.textDark },
 
   // Section
-  sectionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 22,
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: C.textDark,
-    letterSpacing: -0.2,
-  },
-  sectionCount: {
-    fontSize: 13,
-    color: C.textMuted,
-    fontWeight: '500',
-  },
+  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, marginBottom: 16 },
+  sectionTitle: { fontSize: 22, fontWeight: '800', color: C.textDark, letterSpacing: -0.5 },
+  sectionCount: { fontSize: 14, color: C.textMuted, fontWeight: '600' },
 
   // Grid
-  gridWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 14,
-  },
-  gridCol: {
-    width: '50%',
-    paddingHorizontal: 6,
-    marginBottom: 14,
-  },
+  gridWrap: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16 },
+  gridCol: { width: '50%', paddingHorizontal: 8, marginBottom: 16 },
   gridCard: {
-    backgroundColor: C.milk,
-    borderRadius: 18,
+    backgroundColor: C.surface,
+    borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: C.espresso,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.04,
     shadowRadius: 12,
     elevation: 3,
   },
-  gridImage: {
-    width: '100%',
-    height: 130,
-    backgroundColor: C.fog,
-  },
-  gridBody: { padding: 12 },
-  gridCategory: {
-    fontSize: 10,
-    color: C.caramel,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  gridName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: C.textDark,
-    marginBottom: 4,
-  },
-  gridDesc: {
-    fontSize: 11,
-    color: C.textMuted,
-    lineHeight: 16,
-    marginBottom: 8,
-  },
-  gridFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  gridPrice: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: C.walnut,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  ratingStar: { fontSize: 12, color: C.star, marginRight: 2 },
-  ratingVal: { fontSize: 12, fontWeight: '600', color: C.textMuted },
+  gridImage: { width: '100%', height: 140, backgroundColor: C.border },
+  gridBody: { padding: 14 },
+  gridCategory: { fontSize: 10, color: C.textMuted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  gridName: { fontSize: 16, fontWeight: '800', color: C.textDark, marginBottom: 4, letterSpacing: -0.3 },
+  gridDesc: { fontSize: 12, color: C.textMuted, lineHeight: 18, marginBottom: 10 },
+  gridFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  gridPrice: { fontSize: 16, fontWeight: '800', color: C.primary },
+  ratingRow: { flexDirection: 'row', alignItems: 'center' },
+  ratingVal: { fontSize: 12, fontWeight: '700', color: C.textDark, marginLeft: 2 },
 
   // Empty
-  emptyWrap: { alignItems: 'center', marginTop: 50, paddingHorizontal: 40 },
-  emptyCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: C.fog,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  emptyEmoji: { fontSize: 40 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: C.textDark, marginBottom: 6 },
-  emptySub: { fontSize: 13, color: C.textMuted, textAlign: 'center', lineHeight: 19 },
+  emptyWrap: { alignItems: 'center', marginTop: 60, paddingHorizontal: 40 },
+  emptyCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#FFF0ED', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  emptyTitle: { fontSize: 20, fontWeight: '800', color: C.textDark, marginBottom: 8 },
+  emptySub: { fontSize: 14, color: C.textMuted, textAlign: 'center', lineHeight: 22 },
 });
 
 export default UserMenuScreen;
