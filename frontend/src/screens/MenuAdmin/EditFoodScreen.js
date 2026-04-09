@@ -107,7 +107,7 @@ const EditFoodScreen = ({ route, navigation }) => {
             <Text style={s.label}>Price</Text>
             <View style={s.priceRow}>
               <View style={s.pricePrefix}>
-                <Text style={s.pricePrefixText}>$</Text>
+                <Text style={s.pricePrefixText}>Rs.</Text>
               </View>
               <TextInput
                 style={[s.input, s.priceInput]}

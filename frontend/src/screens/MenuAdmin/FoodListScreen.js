@@ -112,7 +112,7 @@ const FoodListScreen = ({ navigation }) => {
         <View style={s.cardBody}>
           <View style={s.titleRow}>
             <Text style={s.itemName} numberOfLines={1}>{item.name}</Text>
-            <Text style={s.priceValue}>${(item.price || 0).toFixed(2)}</Text>
+            <Text style={s.priceValue}>Rs. {(item.price || 0).toFixed(2)}</Text>
           </View>
 
           <View style={s.categoryRow}>

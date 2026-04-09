@@ -106,7 +106,7 @@ const UserMenuScreen = ({ navigation }) => {
             </View>
             <Text style={s.heroName}>{hero.name}</Text>
             <View style={s.heroPriceRow}>
-              <Text style={s.heroPrice}>${(hero.price || 0).toFixed(2)}</Text>
+              <Text style={s.heroPrice}>Rs. {(hero.price || 0).toFixed(2)}</Text>
               <View style={s.heroViewBtn}>
                 <Text style={s.heroViewText}>View Item</Text>
                 <MaterialIcons name="arrow-forward" size={12} color={C.textDark} style={{ marginLeft: 4 }} />
@@ -147,7 +147,7 @@ const UserMenuScreen = ({ navigation }) => {
           {item.description || 'Delicious food item'}
         </Text>
         <View style={s.gridFooter}>
-          <Text style={s.gridPrice}>${(item.price || 0).toFixed(2)}</Text>
+          <Text style={s.gridPrice}>Rs. {(item.price || 0).toFixed(2)}</Text>
           {item.rating > 0 && (
             <View style={s.ratingRow}>
               <MaterialIcons name="star" size={14} color={C.star} />
