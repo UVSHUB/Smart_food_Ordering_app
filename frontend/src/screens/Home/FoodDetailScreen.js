@@ -65,7 +65,12 @@ const FoodDetailScreen = ({ route, navigation }) => {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
           try {
-            await axios.delete(`${BASE_URL}/reviews/${reviewId}`);
+            const config = {
+              headers: {
+                Authorization: `Bearer ${userToken}`,
+              },
+            };
+            await axios.delete(`${BASE_URL}/reviews/${reviewId}`, config);
             fetchReviews();
           } catch (e) {
             Alert.alert('Error', e.response?.data?.message || 'Failed to delete');
