@@ -15,6 +15,8 @@ const C = {
   fog:      '#F5EDE4',
   textDark: '#2D1810',
   textMuted:'#8C7B6F',
+  espresso: '#3A201A',
+  latte:    '#C4B8AC',
 };
 
 const LoginScreen = ({ navigation }) => {
