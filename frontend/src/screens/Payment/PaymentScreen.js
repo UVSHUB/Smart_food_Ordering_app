@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const BASE_URL = 'http://192.168.8.169:5001/api';
@@ -28,6 +29,7 @@ const METHODS = [
 
 const PaymentScreen = ({ navigation, route }) => {
   const { user } = useContext(AuthContext);
+  const { clearCart } = useCart();
   const amount = route?.params?.amount || 0;
 
   const [method, setMethod] = useState('Cash');
@@ -50,6 +52,8 @@ const PaymentScreen = ({ navigation, route }) => {
         amount,
         payment_method: method,
       });
+
+      clearCart(); // clear cart after successful payment
 
       Alert.alert(
         '🎉 Payment Submitted!',

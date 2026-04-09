@@ -1,46 +1,41 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
   View, Text, StyleSheet, Image, ScrollView, TouchableOpacity,
-  SafeAreaView, StatusBar, ActivityIndicator, Alert, FlatList, Platform
+  StatusBar, ActivityIndicator, Alert, FlatList, Platform
 } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { useIsFocused } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
 const BASE_URL = 'http://192.168.8.169:5001/api';
 
 const C = {
-  espresso:    '#3B1F1A',
-  mocha:       '#4A2C2A',
-  walnut:      '#6B4226',
-  caramel:     '#A0673C',
-  cream:       '#FFF8F0',
-  milk:        '#FFFFFF',
-  fog:         '#F5EDE4',
-  textDark:    '#2D1810',
-  textMuted:   '#8C7B6F',
-  danger:      '#E74C3C',
-  star:        '#FFB800'
+  primary:   '#FA4A0C',
+  bg:        '#F9F9FB',
+  surface:   '#FFFFFF',
+  textDark:  '#1A1A1A',
+  textMuted: '#9A9A9D',
+  star:      '#FFB800',
+  danger:    '#FF4B4B',
+  border:    '#E8E8E8',
 };
 
 const FoodDetailScreen = ({ route, navigation }) => {
   const { food } = route.params;
   const { user, userToken } = useContext(AuthContext);
+  const { addToCart, cartCount } = useCart();
   const isFocused = useIsFocused();
 
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
-
-  // Derive initial values from the food object passed via props, but ideally re-fetch later
   const [currentRating, setCurrentRating] = useState(food.rating || 0);
   const [totalReviews, setTotalReviews] = useState(food.numReviews || 0);
+  const [qty, setQty] = useState(1);
 
   useEffect(() => {
-    if (isFocused) {
-      fetchReviews();
-      // Optionally refetch food to update rating instantly, but reviews array tells us enough.
-    }
+    if (isFocused) fetchReviews();
   }, [isFocused]);
 
   const fetchReviews = async () => {
@@ -48,8 +43,6 @@ const FoodDetailScreen = ({ route, navigation }) => {
       setLoadingReviews(true);
       const { data } = await axios.get(`${BASE_URL}/reviews/food/${food._id}`);
       setReviews(data);
-      
-      // Calculate dynamic average manually just to keep UI hyper-fresh
       if (data.length > 0) {
         const sum = data.reduce((acc, rev) => acc + rev.rating, 0);
         setCurrentRating(sum / data.length);
@@ -66,40 +59,47 @@ const FoodDetailScreen = ({ route, navigation }) => {
   };
 
   const handleDeleteReview = (reviewId) => {
-    Alert.alert(
-      "Delete Review",
-      "Are you sure you want to delete your review?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: async () => {
-             try {
-                await axios.delete(`${BASE_URL}/reviews/${reviewId}`);
-                fetchReviews();
-             } catch (e) {
-                Alert.alert("Error", e.response?.data?.message || "Failed to delete");
-             }
+    Alert.alert('Delete Review', 'Are you sure you want to delete your review?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: async () => {
+          try {
+            await axios.delete(`${BASE_URL}/reviews/${reviewId}`);
+            fetchReviews();
+          } catch (e) {
+            Alert.alert('Error', e.response?.data?.message || 'Failed to delete');
           }
-        }
-      ]
-    );
+        },
+      },
+    ]);
   };
 
-  const hasReviewed = user ? reviews.some(r => r.user_id && r.user_id._id === user._id) : false;
-
-  const renderStars = (rating) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-       stars.push(
-         <Text key={i} style={[s.starIcon, { color: i <= Math.round(rating) ? C.star : '#DFD4C9' }]}>
-           ★
-         </Text>
-       );
-    }
-    return <View style={s.starsRow}>{stars}</View>;
+  const handleAddToCart = () => {
+    for (let i = 0; i < qty; i++) addToCart(food);
+    Alert.alert('Added to Cart! 🛒', `${qty}x ${food.name} added to your cart.`, [
+      { text: 'Continue Shopping', style: 'cancel' },
+      { text: 'View Cart', onPress: () => navigation.navigate('Cart') },
+    ]);
   };
+
+  const handleBuyNow = () => {
+    for (let i = 0; i < qty; i++) addToCart(food);
+    navigation.navigate('Cart');
+  };
+
+  const hasReviewed = user ? reviews.some((r) => r.user_id && r.user_id._id === user._id) : false;
+
+  const renderStars = (rating) =>
+    Array.from({ length: 5 }, (_, i) => (
+      <MaterialIcons
+        key={i}
+        name={i < Math.round(rating) ? 'star' : 'star-border'}
+        size={16}
+        color={i < Math.round(rating) ? C.star : '#E0E0E0'}
+        style={{ marginRight: 2 }}
+      />
+    ));
 
   const renderReview = ({ item }) => {
     const isOwner = user && user._id === item.user_id?._id;
@@ -107,26 +107,28 @@ const FoodDetailScreen = ({ route, navigation }) => {
 
     return (
       <View style={s.reviewCard}>
-        <View style={s.reviewHeaderRow}>
-          <View>
+        <View style={s.reviewHeader}>
+          <View style={s.reviewAvatar}>
+            <Text style={s.reviewAvatarText}>{(item.user_id?.name || 'A')[0].toUpperCase()}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
             <Text style={s.reviewerName}>{item.user_id?.name || 'Anonymous'}</Text>
-            {renderStars(item.rating)}
+            <View style={{ flexDirection: 'row' }}>{renderStars(item.rating)}</View>
           </View>
           <Text style={s.reviewDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
         </View>
         <Text style={s.reviewComment}>{item.comment}</Text>
-        
         {(isOwner || canDelete) && (
           <View style={s.reviewActions}>
             {isOwner && (
-               <TouchableOpacity onPress={() => navigation.navigate('EditReview', { review: item, foodName: food.name })}>
-                 <Text style={s.editAction}>Edit</Text>
-               </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('EditReview', { review: item, foodName: food.name })}>
+                <Text style={s.editAction}>Edit</Text>
+              </TouchableOpacity>
             )}
             {canDelete && (
-               <TouchableOpacity onPress={() => handleDeleteReview(item._id)}>
-                 <Text style={s.deleteAction}>Delete</Text>
-               </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDeleteReview(item._id)}>
+                <Text style={s.deleteAction}>Delete</Text>
+              </TouchableOpacity>
             )}
           </View>
         )}
@@ -134,187 +136,259 @@ const FoodDetailScreen = ({ route, navigation }) => {
     );
   };
 
+  const imageUri = food.image && food.image.startsWith('http')
+    ? food.image
+    : `http://192.168.8.169:5001${food.image || '/images/sample-food.jpg'}`;
+
   return (
     <View style={s.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={C.mocha} />
-      
-      {/* Custom Header */}
-      <View style={s.topBar}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={s.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={s.topBarTitle}>Menu Item</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <FlatList
         data={reviews}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 140 }}
         ListHeaderComponent={
           <>
-            {/* Food Image */}
-            <Image
-              source={{
-                uri: food.image && food.image.startsWith('http')
-                  ? food.image
-                  : `http://192.168.8.169:5001${food.image || '/images/sample-food.jpg'}`
-              }}
-              style={s.foodImage}
-            />
+            {/* Hero Image */}
+            <View style={s.heroWrap}>
+              <Image source={{ uri: imageUri }} style={s.heroImage} />
+              {/* Overlay Buttons */}
+              <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+                <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={s.cartBtn} onPress={() => navigation.navigate('Cart')}>
+                <MaterialIcons name="shopping-cart" size={22} color="#fff" />
+                {cartCount > 0 && (
+                  <View style={s.cartBadge}>
+                    <Text style={s.cartBadgeText}>{cartCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
 
-            {/* Food Details */}
-            <View style={s.detailsBlock}>
-              <View style={s.titleRow}>
-                <Text style={s.foodName}>{food.name}</Text>
-                <Text style={s.foodPrice}>${(food.price || 0).toFixed(2)}</Text>
+            {/* Info Card */}
+            <View style={s.infoCard}>
+              {/* Category chip */}
+              <View style={s.categoryChip}>
+                <Text style={s.categoryChipText}>{food.category}</Text>
               </View>
 
-              <View style={s.ratingHeroRow}>
-                {renderStars(currentRating)}
-                <Text style={s.ratingText}>
-                  {currentRating.toFixed(1)} <Text style={s.reviewCountTxt}>({totalReviews} reviews)</Text>
-                </Text>
+              <View style={s.titleRow}>
+                <Text style={s.foodName}>{food.name}</Text>
+                <Text style={s.foodPrice}>Rs. {(food.price || 0).toFixed(2)}</Text>
+              </View>
+
+              {/* Rating Row */}
+              <View style={s.ratingRow}>
+                <View style={{ flexDirection: 'row' }}>{renderStars(currentRating)}</View>
+                <Text style={s.ratingText}>{currentRating.toFixed(1)}</Text>
+                <Text style={s.ratingCount}>({totalReviews} reviews)</Text>
               </View>
 
               <Text style={s.foodDesc}>{food.description}</Text>
+
+              {/* Quantity Selector */}
+              <View style={s.qtySection}>
+                <Text style={s.qtyLabel}>Quantity</Text>
+                <View style={s.qtyRow}>
+                  <TouchableOpacity
+                    style={s.qtyBtn}
+                    onPress={() => setQty((q) => Math.max(1, q - 1))}
+                  >
+                    <MaterialIcons name="remove" size={20} color={C.textDark} />
+                  </TouchableOpacity>
+                  <Text style={s.qtyValue}>{qty}</Text>
+                  <TouchableOpacity
+                    style={s.qtyBtn}
+                    onPress={() => setQty((q) => q + 1)}
+                  >
+                    <MaterialIcons name="add" size={20} color={C.textDark} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Subtotal */}
+              <View style={s.subtotalRow}>
+                <Text style={s.subtotalLabel}>Subtotal</Text>
+                <Text style={s.subtotalValue}>Rs. {(food.price * qty).toFixed(2)}</Text>
+              </View>
             </View>
 
-            {/* Add Review Action */}
-            <View style={s.reviewsHeaderArea}>
-              <Text style={s.reviewsTitle}>Customer Reviews</Text>
-              
+            {/* Reviews Header */}
+            <View style={s.reviewsHeader}>
+              <Text style={s.reviewsTitle}>Reviews</Text>
               {!userToken ? (
-                <Text style={s.loginPrompt}>Log in to write a review</Text>
+                <Text style={s.reviewPrompt}>Log in to review</Text>
               ) : hasReviewed ? (
-                <Text style={s.loggedInPrompt}>You have reviewed this item.</Text>
+                <Text style={s.reviewPrompt}>You've reviewed this</Text>
               ) : (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={s.addReviewBtn}
                   onPress={() => navigation.navigate('AddReview', { foodId: food._id, foodName: food.name })}
                 >
-                  <Text style={s.addReviewBtnText}>Add Review</Text>
+                  <Text style={s.addReviewBtnText}>+ Write a Review</Text>
                 </TouchableOpacity>
               )}
             </View>
-            
-            {loadingReviews && (
-               <ActivityIndicator color={C.caramel} style={{ marginTop: 20 }} />
-            )}
-            
+
+            {loadingReviews && <ActivityIndicator color={C.primary} style={{ marginTop: 20 }} />}
             {!loadingReviews && reviews.length === 0 && (
-               <View style={s.noReviewsBox}>
-                 <Text style={s.noReviewsTxt}>No reviews yet. Be the first!</Text>
-               </View>
+              <View style={s.noReviews}>
+                <MaterialIcons name="rate-review" size={36} color={C.border} />
+                <Text style={s.noReviewsText}>No reviews yet. Be the first!</Text>
+              </View>
             )}
           </>
         }
         renderItem={renderReview}
       />
+
+      {/* Sticky Bottom CTA */}
+      {userToken && (
+        <View style={s.footer}>
+          <TouchableOpacity style={s.addToCartBtn} onPress={handleAddToCart} activeOpacity={0.8}>
+            <MaterialIcons name="add-shopping-cart" size={20} color={C.primary} />
+            <Text style={s.addToCartText}>Add to Cart</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.buyNowBtn} onPress={handleBuyNow} activeOpacity={0.85}>
+            <Text style={s.buyNowText}>Buy Now</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: C.cream },
-  topBar: {
-    backgroundColor: C.mocha,
-    paddingTop: STATUSBAR_HEIGHT,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  safeArea: { flex: 1, backgroundColor: C.bg },
+
+  // Hero
+  heroWrap: { position: 'relative' },
+  heroImage: { width: '100%', height: 300, backgroundColor: C.border },
+  backBtn: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 54 : (StatusBar.currentHeight || 24) + 10,
+    left: 16,
+    width: 40, height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center', alignItems: 'center',
   },
-  backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backIcon: { fontSize: 24, color: C.cream, fontWeight: '700' },
-  topBarTitle: { fontSize: 19, fontWeight: '700', color: C.cream },
-  
-  foodImage: {
-    width: '100%',
-    height: 250,
-    backgroundColor: C.fog,
+  cartBtn: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 54 : (StatusBar.currentHeight || 24) + 10,
+    right: 16,
+    width: 40, height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center', alignItems: 'center',
   },
-  detailsBlock: {
-    backgroundColor: C.milk,
+  cartBadge: {
+    position: 'absolute', top: -4, right: -4,
+    backgroundColor: C.primary,
+    width: 18, height: 18, borderRadius: 9,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  cartBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+
+  // Info Card
+  infoCard: {
+    backgroundColor: C.surface,
+    marginHorizontal: 16,
+    marginTop: -24,
+    borderRadius: 24,
     padding: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    shadowColor: C.espresso,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    elevation: 6,
     marginBottom: 20,
   },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  foodName: { fontSize: 24, fontWeight: '800', color: C.textDark, flex: 1, marginRight: 10 },
-  foodPrice: { fontSize: 24, fontWeight: '800', color: C.caramel },
-  
-  ratingHeroRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  ratingText: { fontSize: 15, fontWeight: '700', color: C.textDark, marginLeft: 8 },
-  reviewCountTxt: { fontWeight: '400', color: C.textMuted },
-  
-  foodDesc: { fontSize: 15, lineHeight: 22, color: C.textMuted },
-
-  reviewsHeaderArea: {
-    paddingHorizontal: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  reviewsTitle: { fontSize: 19, fontWeight: '700', color: C.textDark },
-  addReviewBtn: {
-    backgroundColor: C.walnut,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  categoryChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFF0ED',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 20,
+    marginBottom: 12,
   },
-  addReviewBtnText: { color: C.cream, fontSize: 13, fontWeight: '700' },
-  loginPrompt: { color: C.textMuted, fontSize: 13, fontStyle: 'italic' },
-  loggedInPrompt: { color: C.caramel, fontSize: 13, fontWeight: '600' },
+  categoryChipText: { color: C.primary, fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  foodName: { fontSize: 22, fontWeight: '800', color: C.textDark, flex: 1, marginRight: 12, letterSpacing: -0.5 },
+  foodPrice: { fontSize: 22, fontWeight: '900', color: C.primary },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
+  ratingText: { fontSize: 14, fontWeight: '700', color: C.textDark, marginLeft: 6 },
+  ratingCount: { fontSize: 13, color: C.textMuted, marginLeft: 4 },
+  foodDesc: { fontSize: 14, lineHeight: 22, color: C.textMuted, marginBottom: 20 },
 
-  noReviewsBox: { padding: 24, alignItems: 'center' },
-  noReviewsTxt: { color: C.textMuted, fontSize: 15 },
+  // Qty
+  qtySection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  qtyLabel: { fontSize: 15, fontWeight: '700', color: C.textDark },
+  qtyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.bg, borderRadius: 14, padding: 4 },
+  qtyBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: C.surface, justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
+  },
+  qtyValue: { fontSize: 17, fontWeight: '800', color: C.textDark, marginHorizontal: 16 },
+
+  // Subtotal
+  subtotalRow: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 16, borderTopWidth: 1, borderTopColor: C.border },
+  subtotalLabel: { fontSize: 15, color: C.textMuted, fontWeight: '600' },
+  subtotalValue: { fontSize: 18, fontWeight: '900', color: C.primary },
+
+  // Reviews
+  reviewsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },
+  reviewsTitle: { fontSize: 18, fontWeight: '800', color: C.textDark },
+  addReviewBtn: { backgroundColor: '#FFF0ED', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
+  addReviewBtnText: { color: C.primary, fontSize: 13, fontWeight: '700' },
+  reviewPrompt: { color: C.textMuted, fontSize: 13 },
+  noReviews: { alignItems: 'center', padding: 30 },
+  noReviewsText: { color: C.textMuted, marginTop: 8, fontSize: 14 },
 
   reviewCard: {
-    backgroundColor: C.milk,
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#F0EBE6'
+    backgroundColor: C.surface, marginHorizontal: 16, marginBottom: 12,
+    borderRadius: 18, padding: 16,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 1,
   },
-  reviewHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+  reviewHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  reviewAvatar: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: '#FFF0ED', justifyContent: 'center', alignItems: 'center', marginRight: 12,
   },
-  reviewerName: { fontSize: 15, fontWeight: '700', color: C.textDark, marginBottom: 2 },
-  reviewDate: { fontSize: 12, color: '#B5A99A' },
+  reviewAvatarText: { fontSize: 16, fontWeight: '800', color: C.primary },
+  reviewerName: { fontSize: 14, fontWeight: '700', color: C.textDark, marginBottom: 4 },
+  reviewDate: { fontSize: 12, color: C.textMuted },
   reviewComment: { fontSize: 14, color: C.textMuted, lineHeight: 20 },
-  
-  starsRow: { flexDirection: 'row' },
-  starIcon: { fontSize: 16, marginRight: 2 },
+  reviewActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.border },
+  editAction: { color: C.primary, fontWeight: '600', marginRight: 16, fontSize: 13 },
+  deleteAction: { color: C.danger, fontWeight: '600', fontSize: 13 },
 
-  reviewActions: {
+  // Footer
+  footer: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F5EDE4'
+    padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+    backgroundColor: C.surface,
+    borderTopWidth: 1, borderTopColor: C.border,
+    gap: 12,
   },
-  editAction: { color: C.latte, fontWeight: '600', marginRight: 16 },
-  deleteAction: { color: C.danger, fontWeight: '600' },
+  addToCartBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: C.primary, borderRadius: 16, paddingVertical: 16,
+    gap: 8,
+  },
+  addToCartText: { color: C.primary, fontSize: 15, fontWeight: '800' },
+  buyNowBtn: {
+    flex: 1.5, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.primary, borderRadius: 16, paddingVertical: 16,
+    shadowColor: C.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
+  },
+  buyNowText: { color: '#fff', fontSize: 15, fontWeight: '800' },
 });
 
 export default FoodDetailScreen;

@@ -8,6 +8,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 // ── Auth Context ──
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
+import { CartProvider } from './src/context/CartContext';
+
+// ── Cart Screen ──
+import CartScreen from './src/screens/Cart/CartScreen';
 
 // ── Auth Screens ──
 import LoginScreen from './src/screens/Auth/LoginScreen';
@@ -96,6 +100,7 @@ function CustomerStack() {
       <Stack.Screen name="FoodDetail" component={FoodDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="AddReview" component={AddReviewScreen} options={{ headerShown: false }} />
       <Stack.Screen name="EditReview" component={EditReviewScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Cart" component={CartScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Payment" component={PaymentScreen} options={{ headerShown: false }} />
       <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ headerShown: false }} />
       <Stack.Screen name="PaymentDetail" component={PaymentDetailScreen} options={{ headerShown: false }} />
@@ -222,8 +227,10 @@ function AppNav() {
 export default function App() {
   return (
     <AuthProvider>
-      <StatusBar style="light" />
-      <AppNav />
+      <CartProvider>
+        <StatusBar style="dark" />
+        <AppNav />
+      </CartProvider>
     </AuthProvider>
   );
 }
