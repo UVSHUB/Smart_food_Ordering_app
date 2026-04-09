@@ -1,3 +1,4 @@
+// Author: pamindi024 - Food Menu Management Module
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet, Image,

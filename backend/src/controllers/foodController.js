@@ -1,3 +1,4 @@
+// Author: pamindi024 - Food Menu Management Module
 const Food = require('../models/Food');
 
 // @desc    Fetch all foods
