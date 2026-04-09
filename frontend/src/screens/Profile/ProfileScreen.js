@@ -94,6 +94,19 @@ const ProfileScreen = ({ navigation }) => {
           <View style={s.divider} />
 
           <TouchableOpacity 
+            style={s.actionBtn}
+            onPress={() => navigation.navigate('PaymentHistory')}
+          >
+            <View style={s.btnContent}>
+              <MaterialIcons name="receipt-long" size={22} color={C.textMuted} style={{ marginRight: 14 }} />
+              <Text style={s.btnText}>Payment History</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={C.border} />
+          </TouchableOpacity>
+
+          <View style={s.divider} />
+
+          <TouchableOpacity 
             style={s.actionBtn} 
             onPress={logout}
           >

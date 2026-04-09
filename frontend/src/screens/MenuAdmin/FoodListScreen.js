@@ -170,10 +170,20 @@ const FoodListScreen = ({ navigation }) => {
           <Text style={s.headerTitle}>Menu Items</Text>
           <Text style={s.headerSubtitle}>{foods.length} items total</Text>
         </View>
-        <TouchableOpacity style={s.actionAddBtn} onPress={() => navigation.navigate('AddFood')} activeOpacity={0.8}>
-          <MaterialIcons name="add" size={22} color={C.surface} />
-          <Text style={s.actionAddText}>Add New</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            style={[s.actionAddBtn, { backgroundColor: '#1A1A1A' }]}
+            onPress={() => navigation.navigate('AdminPayments')}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons name="receipt-long" size={20} color="#fff" />
+            <Text style={s.actionAddText}>Payments</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.actionAddBtn} onPress={() => navigation.navigate('AddFood')} activeOpacity={0.8}>
+            <MaterialIcons name="add" size={22} color={C.surface} />
+            <Text style={s.actionAddText}>Add New</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Error Banner */}

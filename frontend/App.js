@@ -19,6 +19,12 @@ import FoodDetailScreen from './src/screens/Home/FoodDetailScreen';
 import AddReviewScreen from './src/screens/Home/AddReviewScreen';
 import EditReviewScreen from './src/screens/Home/EditReviewScreen';
 
+// ── Payment Screens ──
+import PaymentScreen from './src/screens/Payment/PaymentScreen';
+import PaymentHistoryScreen from './src/screens/Payment/PaymentHistoryScreen';
+import PaymentDetailScreen from './src/screens/Payment/PaymentDetailScreen';
+import AdminPaymentScreen from './src/screens/Payment/AdminPaymentScreen';
+
 // ── Admin Screens ──
 import FoodListScreen from './src/screens/MenuAdmin/FoodListScreen';
 import AddFoodScreen from './src/screens/MenuAdmin/AddFoodScreen';
@@ -86,26 +92,13 @@ function AuthStack() {
 function CustomerStack() {
   return (
     <Stack.Navigator screenOptions={screenOptions}>
-      <Stack.Screen
-        name="UserMenu"
-        component={UserMenuScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="FoodDetail"
-        component={FoodDetailScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AddReview"
-        component={AddReviewScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="EditReview"
-        component={EditReviewScreen}
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="UserMenu" component={UserMenuScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="FoodDetail" component={FoodDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="AddReview" component={AddReviewScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="EditReview" component={EditReviewScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Payment" component={PaymentScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="PaymentDetail" component={PaymentDetailScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -116,6 +109,8 @@ function ProfileStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProfileMain" component={ProfileScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
+      <Stack.Screen name="PaymentDetail" component={PaymentDetailScreen} />
     </Stack.Navigator>
   );
 }
@@ -124,21 +119,10 @@ function ProfileStack() {
 function AdminFoodStack() {
   return (
     <Stack.Navigator screenOptions={screenOptions} initialRouteName="FoodList">
-      <Stack.Screen
-        name="FoodList"
-        component={FoodListScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AddFood"
-        component={AddFoodScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="EditFood"
-        component={EditFoodScreen}
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="FoodList" component={FoodListScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="AddFood" component={AddFoodScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="EditFood" component={EditFoodScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="AdminPayments" component={AdminPaymentScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

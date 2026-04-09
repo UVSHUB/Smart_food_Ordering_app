@@ -1,0 +1,217 @@
+import React, { useState } from 'react';
+import {
+  View, Text, StyleSheet, TouchableOpacity,
+  ActivityIndicator, Alert, ScrollView, StatusBar, Platform
+} from 'react-native';
+import axios from 'axios';
+import { MaterialIcons } from '@expo/vector-icons';
+
+const BASE_URL = 'http://192.168.8.169:5001/api';
+
+const C = {
+  primary:   '#FA4A0C',
+  bg:        '#F9F9FB',
+  surface:   '#FFFFFF',
+  textDark:  '#1A1A1A',
+  textMuted: '#9A9A9D',
+  success:   '#22C55E',
+  pending:   '#F59E0B',
+  danger:    '#FF4B4B',
+  dangerBg:  '#FFF0F0',
+  border:    '#E8E8E8',
+};
+
+const METHOD_ICONS = { Cash: 'payments', Card: 'credit-card', Online: 'phone-android' };
+
+const PaymentDetailScreen = ({ route, navigation }) => {
+  const { payment: initial } = route.params;
+  const [payment, setPayment] = useState(initial);
+  const [loading, setLoading] = useState(false);
+
+  const isPaid = payment.status === 'Paid';
+
+  const handleMarkPaid = async () => {
+    if (isPaid) {
+      Alert.alert('Already Paid', 'This payment has already been marked as Paid.');
+      return;
+    }
+    Alert.alert(
+      'Mark as Paid',
+      'Are you sure you want to mark this payment as Paid?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const { data } = await axios.put(`${BASE_URL}/payments/${payment._id}`, { status: 'Paid' });
+              setPayment(data);
+              Alert.alert('Success', 'Payment marked as Paid!');
+            } catch (err) {
+              Alert.alert('Error', 'Failed to update payment status.');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const date = new Date(payment.createdAt).toLocaleString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+
+  return (
+    <View style={s.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+
+      <View style={s.topBar}>
+        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
+        </TouchableOpacity>
+        <Text style={s.topBarTitle}>Payment Detail</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        {/* Status Hero */}
+        <View style={[s.heroCard, { backgroundColor: isPaid ? C.success : C.pending }]}>
+          <MaterialIcons
+            name={isPaid ? 'check-circle' : 'access-time'}
+            size={48} color="#fff"
+            style={{ marginBottom: 12 }}
+          />
+          <Text style={s.heroStatus}>{payment.status}</Text>
+          <Text style={s.heroAmount}>Rs. {(payment.amount || 0).toFixed(2)}</Text>
+          <Text style={s.heroDate}>{date}</Text>
+        </View>
+
+        {/* Detail Rows */}
+        <View style={s.detailCard}>
+          <DetailRow icon="tag" label="Payment ID" value={payment._id} mono />
+          <DetailRow icon={METHOD_ICONS[payment.payment_method] || 'receipt'} label="Method" value={payment.payment_method} />
+          <DetailRow icon="attach-money" label="Amount" value={`Rs. ${(payment.amount || 0).toFixed(2)}`} />
+          <DetailRow icon="info" label="Status" value={payment.status} last />
+        </View>
+
+        {/* Action Button */}
+        {!isPaid && (
+          <TouchableOpacity
+            style={[s.actionBtn, loading && { opacity: 0.7 }]}
+            onPress={handleMarkPaid}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <MaterialIcons name="check-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={s.actionText}>Mark as Paid</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {isPaid && (
+          <View style={s.paidBadge}>
+            <MaterialIcons name="verified" size={20} color={C.success} style={{ marginRight: 8 }} />
+            <Text style={s.paidBadgeText}>This payment is completed</Text>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+};
+
+// Reusable detail row
+const DetailRow = ({ icon, label, value, mono = false, last = false }) => (
+  <View style={[dr.row, !last && dr.border]}>
+    <MaterialIcons name={icon} size={20} color={C.textMuted} style={{ marginRight: 12 }} />
+    <View style={{ flex: 1 }}>
+      <Text style={dr.label}>{label}</Text>
+      <Text style={[dr.value, mono && dr.mono]} numberOfLines={2}>{value}</Text>
+    </View>
+  </View>
+);
+
+const dr = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16 },
+  border: { borderBottomWidth: 1, borderBottomColor: C.border },
+  label: { fontSize: 12, color: C.textMuted, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  value: { fontSize: 15, color: C.textDark, fontWeight: '700' },
+  mono: { fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', fontSize: 13 },
+});
+
+const s = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: C.bg },
+  topBar: {
+    backgroundColor: C.bg,
+    paddingTop: Platform.OS === 'ios' ? 10 : (StatusBar.currentHeight || 24) + 10,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
+  topBarTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
+  scroll: { padding: 20 },
+
+  heroCard: {
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  heroStatus: { fontSize: 14, color: 'rgba(255,255,255,0.8)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+  heroAmount: { fontSize: 40, fontWeight: '900', color: '#fff', letterSpacing: -1, marginBottom: 8 },
+  heroDate: { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: '500' },
+
+  detailCard: {
+    backgroundColor: C.surface,
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    elevation: 3,
+    marginBottom: 24,
+  },
+
+  actionBtn: {
+    backgroundColor: C.success,
+    borderRadius: 18,
+    paddingVertical: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: C.success,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  actionText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+
+  paidBadge: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: 16,
+    padding: 18,
+  },
+  paidBadgeText: { color: C.success, fontSize: 15, fontWeight: '700' },
+});
+
+export default PaymentDetailScreen;
