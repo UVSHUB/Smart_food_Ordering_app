@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
+import { MaterialIcons } from '@expo/vector-icons';
 
 // ── Auth Context ──
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
@@ -32,15 +33,14 @@ import UserListScreen from './src/screens/UserAdmin/UserListScreen';
 import EditUserAdminScreen from './src/screens/UserAdmin/EditUserAdminScreen';
 
 // ── Palette ──
+// ── Ultra Premium Modern Palette ──
 const C = {
-  mocha:    '#4A2C2A',
-  walnut:   '#6B4226',
-  caramel:  '#A0673C',
-  cream:    '#FFF8F0',
-  milk:     '#FFFFFF',
-  fog:      '#F5EDE4',
-  textDark: '#2D1810',
-  textMuted:'#8C7B6F',
+  primary:     '#FA4A0C', 
+  bg:          '#F9F9FB', 
+  surface:     '#FFFFFF', 
+  textDark:    '#1A1A1A', 
+  textMuted:   '#9A9A9D', 
+  border:      '#E8E8E8',
 };
 
 const Stack = createNativeStackNavigator();
@@ -48,21 +48,25 @@ const Tab = createBottomTabNavigator();
 
 // ── Shared header options ──
 const screenOptions = {
-  headerStyle: { backgroundColor: C.mocha },
-  headerTintColor: C.cream,
+  headerStyle: { backgroundColor: C.surface },
+  headerTintColor: C.textDark,
   headerTitleStyle: { fontWeight: '700', fontSize: 18, letterSpacing: 0.3 },
   headerShadowVisible: false,
   animation: 'slide_from_right',
-  contentStyle: { backgroundColor: C.cream },
+  contentStyle: { backgroundColor: C.bg },
 };
 
 // ── Tab Icon Component ──
-const TabIcon = ({ emoji, label, focused }) => (
+// ── Tab Icon Component ──
+const TabIcon = ({ iconName, label, focused }) => (
   <View style={styles.tabIconWrap}>
-    <Text style={[styles.tabEmoji, focused && styles.tabEmojiActive]}>
-      {emoji}
-    </Text>
-    <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>
+    <MaterialIcons 
+      name={iconName} 
+      size={24} 
+      color={focused ? C.primary : C.textMuted} 
+      style={{ marginBottom: 4 }}
+    />
+    <Text style={[styles.tabLabel, focused && styles.tabLabelActive]} numberOfLines={1}>
       {label}
     </Text>
   </View>
@@ -163,8 +167,8 @@ function AppNav() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.cream }}>
-        <ActivityIndicator size="large" color={C.caramel} />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg }}>
+        <ActivityIndicator size="large" color={C.primary} />
       </View>
     );
   }
@@ -187,7 +191,7 @@ function AppNav() {
             component={CustomerStack}
             options={{
               tabBarIcon: ({ focused }) => (
-                <TabIcon emoji="🍽️" label="Menu" focused={focused} />
+                <TabIcon iconName="restaurant-menu" label="Menu" focused={focused} />
               ),
             }}
           />
@@ -199,7 +203,7 @@ function AppNav() {
                 component={AdminFoodStack}
                 options={{
                   tabBarIcon: ({ focused }) => (
-                    <TabIcon emoji="⚙️" label="Food" focused={focused} />
+                    <TabIcon iconName="settings" label="Food" focused={focused} />
                   ),
                 }}
               />
@@ -208,7 +212,7 @@ function AppNav() {
                 component={AdminUserStack}
                 options={{
                   tabBarIcon: ({ focused }) => (
-                    <TabIcon emoji="👥" label="Users" focused={focused} />
+                    <TabIcon iconName="people" label="Users" focused={focused} />
                   ),
                 }}
               />
@@ -220,7 +224,7 @@ function AppNav() {
             component={ProfileStack}
             options={{
               tabBarIcon: ({ focused }) => (
-                <TabIcon emoji="👤" label="Profile" focused={focused} />
+                <TabIcon iconName="person" label="Profile" focused={focused} />
               ),
             }}
           />
@@ -243,29 +247,17 @@ export default function App() {
 // ── Styles ──
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: C.milk,
-    borderTopWidth: 0,
-    height: 72,
-    paddingBottom: 8,
-    paddingTop: 8,
-    shadowColor: C.mocha,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 12,
+    backgroundColor: C.surface,
+    borderTopWidth: 1,
+    borderTopColor: C.border,
+    height: Platform.OS === 'ios' ? 86 : 70,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+    paddingTop: 10,
   },
   tabIconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 4,
-  },
-  tabEmoji: {
-    fontSize: 22,
-    marginBottom: 4,
-    opacity: 0.5,
-  },
-  tabEmojiActive: {
-    opacity: 1,
+    minWidth: 50,
   },
   tabLabel: {
     fontSize: 11,
@@ -273,7 +265,7 @@ const styles = StyleSheet.create({
     color: C.textMuted,
   },
   tabLabelActive: {
-    color: C.walnut,
-    fontWeight: '700',
+    color: C.primary,
+    fontWeight: '800',
   },
 });

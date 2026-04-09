@@ -176,7 +176,7 @@ const UserMenuScreen = ({ navigation }) => {
       {/* Top Header Bar */}
       <View style={s.topBar}>
         <MaterialIcons name="restaurant" size={24} color={C.primary} style={{ marginRight: 8 }} />
-        <Text style={s.topBarTitle}>Smart Food</Text>
+        <Text style={s.topBarTitle}>SLIIT KADE</Text>
       </View>
 
       <ScrollView
@@ -288,7 +288,7 @@ const s = StyleSheet.create({
 
   // Top header bar
   topBar: {
-    paddingTop: Platform.OS === 'ios' ? 10 : 16,
+    paddingTop: Platform.OS === 'ios' ? 10 : (StatusBar.currentHeight || 24) + 10,
     paddingBottom: 10,
     paddingHorizontal: 24,
     flexDirection: 'row',
