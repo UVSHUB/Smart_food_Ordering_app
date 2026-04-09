@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
 
@@ -31,7 +32,7 @@ const AdminDashboardScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('FoodList')}
           activeOpacity={0.8}
         >
-          <View style={s.cardIconBox}><Text style={s.cardIcon}>☕</Text></View>
+          <View style={s.cardIconBox}><MaterialIcons name="restaurant-menu" size={24} color={C.walnut} /></View>
           <View style={s.cardBody}>
             <Text style={s.cardTitle}>Manage Menu</Text>
             <Text style={s.cardSub}>Add, edit, or remove food items</Text>
@@ -44,7 +45,7 @@ const AdminDashboardScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('UserList')}
           activeOpacity={0.8}
         >
-          <View style={[s.cardIconBox, { backgroundColor: '#E8F5E9' }]}><Text style={s.cardIcon}>👥</Text></View>
+          <View style={[s.cardIconBox, { backgroundColor: '#E8F5E9' }]}><MaterialIcons name="people" size={24} color={'#2E7D32'} /></View>
           <View style={s.cardBody}>
             <Text style={s.cardTitle}>Manage Users</Text>
             <Text style={s.cardSub}>View profiles, promote admins, delete</Text>

@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const BASE_URL = 'http://192.168.8.169:5001/api/foods';
 const { width } = Dimensions.get('window');
@@ -27,12 +28,12 @@ const C = {
 };
 
 const CATEGORIES = ['All', 'Meals', 'Drinks', 'Snacks', 'Desserts'];
-const CATEGORY_EMOJI = {
-  All:      '🍽️',
-  Meals:    '🍛',
-  Drinks:   '☕',
-  Snacks:   '🥨',
-  Desserts: '🍰',
+const CATEGORY_ICON = {
+  All:      'menu-book',
+  Meals:    'restaurant',
+  Drinks:   'local-cafe',
+  Snacks:   'fastfood',
+  Desserts: 'cake',
 };
 
 const UserMenuScreen = ({ navigation }) => {
@@ -99,9 +100,12 @@ const UserMenuScreen = ({ navigation }) => {
           <Text style={s.heroBadgeText}>⭐  Featured</Text>
         </View>
         <View style={s.heroContent}>
-          <Text style={s.heroCategory}>
-            {CATEGORY_EMOJI[hero.category] || '🍽️'} {hero.category}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+            <MaterialIcons name={CATEGORY_ICON[hero.category] || 'room-service'} size={14} color={'rgba(255,248,240,0.85)'} style={{ marginRight: 6 }} />
+            <Text style={s.heroCategory}>
+              {hero.category}
+            </Text>
+          </View>
           <Text style={s.heroName}>{hero.name}</Text>
           <View style={s.heroPriceRow}>
             <Text style={s.heroPrice}>${(hero.price || 0).toFixed(2)}</Text>
@@ -132,9 +136,12 @@ const UserMenuScreen = ({ navigation }) => {
         style={s.gridImage}
       />
       <View style={s.gridBody}>
-        <Text style={s.gridCategory}>
-          {CATEGORY_EMOJI[item.category] || '🍽️'} {item.category || 'General'}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+          <MaterialIcons name={CATEGORY_ICON[item.category] || 'room-service'} size={12} color={C.caramel} style={{ marginRight: 4 }} />
+          <Text style={s.gridCategory}>
+            {item.category || 'General'}
+          </Text>
+        </View>
         <Text style={s.gridName} numberOfLines={1}>{item.name}</Text>
         <Text style={s.gridDesc} numberOfLines={2}>
           {item.description || 'Delicious food item'}
@@ -174,7 +181,10 @@ const UserMenuScreen = ({ navigation }) => {
 
       {/* Top Header Bar */}
       <View style={s.topBar}>
-        <Text style={s.topBarTitle}>☕  Smart Food</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <MaterialIcons name="restaurant" size={20} color={C.cream} style={{ marginRight: 8 }} />
+          <Text style={s.topBarTitle}>Smart Food</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -198,7 +208,7 @@ const UserMenuScreen = ({ navigation }) => {
 
         {/* Search */}
         <View style={s.searchWrap}>
-          <Text style={s.searchIcon}>🔍</Text>
+          <MaterialIcons name="search" size={20} color={C.textMuted} style={{ marginRight: 8 }} />
           <TextInput
             style={s.searchInput}
             placeholder="Search for food..."
@@ -226,7 +236,7 @@ const UserMenuScreen = ({ navigation }) => {
               onPress={() => setActiveCategory(cat)}
               activeOpacity={0.7}
             >
-              <Text style={s.catEmoji}>{CATEGORY_EMOJI[cat]}</Text>
+              <MaterialIcons name={CATEGORY_ICON[cat]} size={16} color={activeCategory === cat ? C.cream : C.textDark} style={{ marginRight: 6 }} />
               <Text
                 style={[
                   s.catLabel,
@@ -262,7 +272,7 @@ const UserMenuScreen = ({ navigation }) => {
         ) : filtered.length === 0 ? (
           <View style={s.emptyWrap}>
             <View style={s.emptyCircle}>
-              <Text style={s.emptyEmoji}>🍽️</Text>
+              <MaterialIcons name="restaurant" size={40} color={C.walnut} />
             </View>
             <Text style={s.emptyTitle}>No items found</Text>
             <Text style={s.emptySub}>

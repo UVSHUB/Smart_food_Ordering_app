@@ -4,6 +4,7 @@ import {
   ScrollView, Alert, ActivityIndicator, SafeAreaView, StatusBar, Image, Platform
 } from 'react-native';
 import axios from 'axios';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
 
@@ -24,12 +25,12 @@ const C = {
 };
 
 const CATEGORIES = ['Meals', 'Drinks', 'Snacks', 'Desserts', 'Other'];
-const CATEGORY_EMOJI = {
-  Meals: '🍛',
-  Drinks: '☕',
-  Snacks: '🥨',
-  Desserts: '🍰',
-  Other: '🍽️',
+const CATEGORY_ICON = {
+  Meals: 'restaurant',
+  Drinks: 'local-cafe',
+  Snacks: 'fastfood',
+  Desserts: 'cake',
+  Other: 'room-service',
 };
 
 const AddFoodScreen = ({ navigation }) => {
@@ -74,7 +75,7 @@ const AddFoodScreen = ({ navigation }) => {
       {/* Custom Top Bar */}
       <View style={s.topBar}>
         <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={s.backIcon}>←</Text>
+          <MaterialIcons name="arrow-back" size={24} color={C.cream} />
         </TouchableOpacity>
         <Text style={s.topBarTitle}>Add Item</Text>
         <View style={{ width: 40 }} />
@@ -88,7 +89,7 @@ const AddFoodScreen = ({ navigation }) => {
       >
         {/* Header card */}
         <View style={s.headerCard}>
-          <Text style={s.headerEmoji}>🍳</Text>
+          <MaterialIcons name="restaurant-menu" size={36} color={C.walnut} style={{ marginRight: 14 }} />
           <View>
             <Text style={s.headerTitle}>New Menu Item</Text>
             <Text style={s.headerSub}>Fill in the details below</Text>
@@ -148,9 +149,12 @@ const AddFoodScreen = ({ navigation }) => {
                   onPress={() => setCategory(cat)}
                   activeOpacity={0.7}
                 >
-                  <Text style={s.chipEmoji}>
-                    {CATEGORY_EMOJI[cat]}
-                  </Text>
+                  <MaterialIcons 
+                    name={CATEGORY_ICON[cat] || 'room-service'} 
+                    size={16} 
+                    color={category === cat ? C.cream : C.walnut} 
+                    style={{ marginRight: 6 }} 
+                  />
                   <Text style={[s.chipText, category === cat && s.chipTextSelected]}>
                     {cat}
                   </Text>
@@ -171,7 +175,8 @@ const AddFoodScreen = ({ navigation }) => {
               </View>
             ) : (
               <View style={[s.imagePreviewWrap, s.emptyImagePreview]}>
-                <Text style={s.emptyImageText}>🖼️  No preview available</Text>
+                <MaterialIcons name="image" size={28} color={C.textMuted} style={{ marginBottom: 8 }} />
+                <Text style={s.emptyImageText}>No preview available</Text>
               </View>
             )}
 
@@ -214,7 +219,10 @@ const AddFoodScreen = ({ navigation }) => {
           {loading ? (
             <ActivityIndicator color="#FFF" />
           ) : (
-            <Text style={s.submitBtnText}>Add to Menu  🍴</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <MaterialIcons name="add-circle-outline" size={20} color={C.cream} style={{ paddingTop: 2, marginRight: 8 }} />
+              <Text style={s.submitBtnText}>Add to Menu</Text>
+            </View>
           )}
         </TouchableOpacity>
 

@@ -7,33 +7,34 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const BASE_URL = 'http://192.168.8.169:5001/api/foods';
 
 // ── Premium Brown & White Palette ──────────────────────
 const C = {
-  espresso:    '#3B1F1A',   // deepest brown - headers
-  mocha:       '#4A2C2A',   // dark brown - accents
-  walnut:      '#6B4226',   // rich walnut
-  caramel:     '#A0673C',   // warm caramel
-  latte:       '#C49A6C',   // latte highlight
-  cream:       '#FFF8F0',   // warm off-white background
-  milk:        '#FFFFFF',   // pure white cards
-  fog:         '#F5EDE4',   // subtle divider / badge bg
-  textDark:    '#2D1810',   // near-black for titles
-  textMuted:   '#8C7B6F',   // muted brown-grey
-  danger:      '#C0392B',   // delete red (kept for semantics)
-  dangerBg:    '#FDEDEB',
-  successBg:   '#E8F5E9',
-  success:     '#2E7D32',
+  espresso: '#3B1F1A',   // deepest brown - headers
+  mocha: '#4A2C2A',   // dark brown - accents
+  walnut: '#6B4226',   // rich walnut
+  caramel: '#A0673C',   // warm caramel
+  latte: '#C49A6C',   // latte highlight
+  cream: '#FFF8F0',   // warm off-white background
+  milk: '#FFFFFF',   // pure white cards
+  fog: '#F5EDE4',   // subtle divider / badge bg
+  textDark: '#2D1810',   // near-black for titles
+  textMuted: '#8C7B6F',   // muted brown-grey
+  danger: '#C0392B',   // delete red (kept for semantics)
+  dangerBg: '#FDEDEB',
+  successBg: '#E8F5E9',
+  success: '#2E7D32',
 };
 
-const CATEGORY_EMOJI = {
-  Meals: '🍛',
-  Drinks: '☕',
-  Snacks: '🥨',
-  Desserts: '🍰',
-  Other: '🍽️',
+const CATEGORY_ICON = {
+  Meals: 'restaurant',
+  Drinks: 'local-cafe',
+  Snacks: 'fastfood',
+  Desserts: 'cake',
+  Other: 'room-service',
 };
 
 const FoodListScreen = ({ navigation }) => {
@@ -106,9 +107,12 @@ const FoodListScreen = ({ navigation }) => {
 
         {/* Category pill */}
         <View style={s.categoryPill}>
-          <Text style={s.categoryEmoji}>
-            {CATEGORY_EMOJI[item.category] || '🍽️'}
-          </Text>
+          <MaterialIcons 
+            name={CATEGORY_ICON[item.category] || 'room-service'} 
+            size={14} 
+            color={C.walnut} 
+            style={{ marginRight: 4 }} 
+          />
           <Text style={s.categoryLabel}>{item.category || 'General'}</Text>
         </View>
 
@@ -145,7 +149,7 @@ const FoodListScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('EditFood', { food: item })}
             activeOpacity={0.7}
           >
-            <Text style={s.editIcon}>✏️</Text>
+            <MaterialIcons name="edit" size={16} color={C.walnut} style={{ marginRight: 6 }} />
             <Text style={s.editText}>Edit</Text>
           </TouchableOpacity>
 
@@ -154,7 +158,7 @@ const FoodListScreen = ({ navigation }) => {
             onPress={() => handleDelete(item._id, item.name)}
             activeOpacity={0.7}
           >
-            <Text style={s.deleteIcon}>🗑️</Text>
+            <MaterialIcons name="delete-outline" size={16} color={C.danger} style={{ marginRight: 6 }} />
             <Text style={s.deleteText}>Delete</Text>
           </TouchableOpacity>
         </View>
@@ -182,7 +186,7 @@ const FoodListScreen = ({ navigation }) => {
       {/* Error Banner */}
       {error ? (
         <View style={s.errorBanner}>
-          <Text style={s.errorEmoji}>⚠️</Text>
+          <MaterialIcons name="error-outline" size={24} color={C.danger} style={{ marginRight: 10 }} />
           <View style={s.errorContent}>
             <Text style={s.errorTitle}>Connection Error</Text>
             <Text style={s.errorMsg}>{error}</Text>
@@ -221,7 +225,7 @@ const FoodListScreen = ({ navigation }) => {
         ListEmptyComponent={
           <View style={s.emptyContainer}>
             <View style={s.emptyIconCircle}>
-              <Text style={s.emptyIcon}>🍽️</Text>
+              <MaterialIcons name="restaurant-menu" size={44} color={C.walnut} />
             </View>
             <Text style={s.emptyTitle}>Your Menu is Empty</Text>
             <Text style={s.emptySubtitle}>
@@ -237,7 +241,7 @@ const FoodListScreen = ({ navigation }) => {
         onPress={() => navigation.navigate('AddFood')}
         activeOpacity={0.85}
       >
-        <Text style={s.fabIcon}>+</Text>
+        <MaterialIcons name="add" size={32} color={C.cream} />
       </TouchableOpacity>
     </SafeAreaView>
   );
