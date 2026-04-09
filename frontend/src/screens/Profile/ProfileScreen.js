@@ -5,22 +5,21 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
 const BASE_URL = 'http://192.168.8.169:5001/api';
 
-// ── Palette ────────────────────────────────────────────
+// ── Ultra Premium Modern Palette ──────────────────────
 const C = {
-  mocha:    '#4A2C2A',
-  walnut:   '#6B4226',
-  caramel:  '#A0673C',
-  cream:    '#FFF8F0',
-  milk:     '#FFFFFF',
-  fog:      '#F5EDE4',
-  textDark: '#2D1810',
-  textMuted:'#8C7B6F',
-  danger:   '#C0392B',
-  dangerBg: '#FDEDEB',
+  primary:     '#FA4A0C', 
+  bg:          '#F9F9FB', 
+  surface:     '#FFFFFF', 
+  textDark:    '#1A1A1A', 
+  textMuted:   '#9A9A9D', 
+  danger:      '#FF4B4B',
+  dangerBg:    '#FFF0F0',
+  success:     '#2E7D32',
+  border:      '#E8E8E8',
 };
 
 const ProfileScreen = ({ navigation }) => {
@@ -56,10 +55,13 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={s.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={C.mocha} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <View style={s.topBar}>
-        <Text style={s.topBarTitle}>👤 Profile</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <MaterialIcons name="person" size={24} color={C.primary} style={{ marginRight: 8 }} />
+          <Text style={s.topBarTitle}>Profile</Text>
+        </View>
       </View>
 
       <View style={s.container}>
@@ -71,7 +73,8 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={s.email}>{user.email}</Text>
           {user.isAdmin && (
             <View style={s.adminBadge}>
-              <Text style={s.adminText}>Admin</Text>
+              <MaterialIcons name="verified-user" size={12} color={C.success} style={{ marginRight: 4 }} />
+              <Text style={s.adminText}>Administrator</Text>
             </View>
           )}
         </View>
@@ -82,10 +85,10 @@ const ProfileScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('EditProfile')}
           >
             <View style={s.btnContent}>
-              <Text style={s.btnIcon}>✏️</Text>
+              <MaterialIcons name="edit" size={22} color={C.textMuted} style={{ marginRight: 14 }} />
               <Text style={s.btnText}>Edit Profile</Text>
             </View>
-            <Text style={s.arrow}>›</Text>
+            <MaterialIcons name="chevron-right" size={24} color={C.border} />
           </TouchableOpacity>
 
           <View style={s.divider} />
@@ -95,10 +98,10 @@ const ProfileScreen = ({ navigation }) => {
             onPress={logout}
           >
             <View style={s.btnContent}>
-              <Text style={s.btnIcon}>🚪</Text>
+              <MaterialIcons name="logout" size={22} color={C.textMuted} style={{ marginRight: 14 }} />
               <Text style={s.btnText}>Logout</Text>
             </View>
-            <Text style={s.arrow}>›</Text>
+            <MaterialIcons name="chevron-right" size={24} color={C.border} />
           </TouchableOpacity>
         </View>
 
@@ -111,7 +114,7 @@ const ProfileScreen = ({ navigation }) => {
              <ActivityIndicator color={C.danger} />
           ) : (
              <>
-               <Text style={s.deleteBtnIcon}>🗑️</Text>
+               <MaterialIcons name="delete-outline" size={20} color={C.danger} style={{ marginRight: 8 }} />
                <Text style={s.deleteBtnText}>Delete Account</Text>
              </>
           )}
@@ -123,83 +126,88 @@ const ProfileScreen = ({ navigation }) => {
 };
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: C.cream },
+  safeArea: { flex: 1, backgroundColor: C.bg },
   topBar: {
-    backgroundColor: C.mocha,
-    paddingTop: STATUSBAR_HEIGHT,
-    paddingBottom: 14,
-    paddingHorizontal: 20,
+    backgroundColor: C.bg,
+    paddingTop: Platform.OS === 'ios' ? 10 : (StatusBar.currentHeight || 24) + 10,
+    paddingBottom: 16,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
     alignItems: 'center',
   },
   topBarTitle: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: C.cream,
-    letterSpacing: 0.3,
+    fontSize: 28,
+    fontWeight: '800',
+    color: C.textDark,
+    letterSpacing: -0.5,
   },
   container: {
-    padding: 20,
+    padding: 24,
   },
   headerCard: {
-    backgroundColor: C.milk,
-    borderRadius: 20,
+    backgroundColor: C.surface,
+    borderRadius: 24,
     padding: 24,
     alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: C.espresso,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.03,
+    shadowRadius: 20,
+    elevation: 4,
   },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: C.caramel,
+    backgroundColor: '#FFF0ED',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   avatarText: {
     fontSize: 32,
-    fontWeight: '700',
-    color: C.cream,
+    fontWeight: '800',
+    color: C.primary,
   },
   name: {
     fontSize: 22,
     fontWeight: '800',
     color: C.textDark,
     marginBottom: 4,
+    letterSpacing: -0.5,
   },
   email: {
     fontSize: 14,
     color: C.textMuted,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   adminBadge: {
-    backgroundColor: C.walnut,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   adminText: {
-    color: C.cream,
+    color: C.success,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 
   actionsCard: {
-    backgroundColor: C.milk,
-    borderRadius: 20,
+    backgroundColor: C.surface,
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: C.espresso,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.03,
+    shadowRadius: 16,
+    elevation: 3,
+    marginBottom: 24,
   },
   actionBtn: {
     flexDirection: 'row',
@@ -211,24 +219,15 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  btnIcon: {
-    fontSize: 20,
-    marginRight: 14,
-  },
   btnText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: C.textDark,
-  },
-  arrow: {
-    fontSize: 24,
-    color: '#D1CBC4',
-    lineHeight: 24,
   },
   divider: {
     height: 1,
-    backgroundColor: '#F0EBE6',
-    marginLeft: 54,
+    backgroundColor: C.border,
+    marginLeft: 56,
   },
 
   deleteBtn: {
@@ -238,12 +237,6 @@ const s = StyleSheet.create({
     paddingVertical: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#F5C6C2',
-  },
-  deleteBtnIcon: {
-    fontSize: 18,
-    marginRight: 8,
   },
   deleteBtnText: {
     color: C.danger,

@@ -5,21 +5,21 @@ import {
   Platform, Switch
 } from 'react-native';
 import axios from 'axios';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
 const BASE_URL = 'http://192.168.8.169:5001/api';
 
+// ── Ultra Premium Modern Palette ──────────────────────
 const C = {
-  mocha:    '#4A2C2A',
-  walnut:   '#6B4226',
-  caramel:  '#A0673C',
-  cream:    '#FFF8F0',
-  milk:     '#FFFFFF',
-  fog:      '#F5EDE4',
-  danger:   '#C0392B',
-  dangerBg: '#FDEDEB',
-  textDark: '#2D1810',
-  textMuted:'#8C7B6F',
+  primary:     '#FA4A0C', 
+  bg:          '#F9F9FB', 
+  surface:     '#FFFFFF', 
+  textDark:    '#1A1A1A', 
+  textMuted:   '#9A9A9D', 
+  danger:      '#FF4B4B',
+  dangerBg:    '#FFF0F0',
+  success:     '#2E7D32',
+  border:      '#E8E8E8',
 };
 
 const EditUserAdminScreen = ({ route, navigation }) => {
@@ -42,7 +42,7 @@ const EditUserAdminScreen = ({ route, navigation }) => {
       setEmail(data.email);
       setIsAdmin(data.isAdmin);
     } catch (err) {
-      Alert.alert('Error', 'Failed to fetch user limits.');
+      Alert.alert('Error', 'Failed to fetch user data.');
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -82,22 +82,22 @@ const EditUserAdminScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <View style={[s.safeArea, s.centered]}>
-        <ActivityIndicator size="large" color={C.mocha} />
+        <ActivityIndicator size="large" color={C.primary} />
       </View>
     );
   }
 
   return (
     <View style={s.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={C.mocha} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <View style={s.topBar}>
         <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={s.backIcon}>←</Text>
+          <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
         </TouchableOpacity>
         <Text style={s.topBarTitle}>Edit User</Text>
         <TouchableOpacity style={s.deleteBtn} onPress={handleDelete}>
-            <Text style={s.deleteIcon}>🗑️</Text>
+            <MaterialIcons name="delete-outline" size={24} color={C.danger} />
         </TouchableOpacity>
       </View>
 
@@ -121,14 +121,14 @@ const EditUserAdminScreen = ({ route, navigation }) => {
 
           <View style={[s.field, s.switchRow]}>
             <View>
-              <Text style={s.label}>Administrator Privileges</Text>
+              <Text style={s.label}>Administrator</Text>
               <Text style={s.metaText}>Toggle Admin dashboard access</Text>
             </View>
             <Switch
               value={isAdmin}
               onValueChange={setIsAdmin}
-              trackColor={{ false: '#D1CBC4', true: C.success || '#2E7D32' }}
-              thumbColor={C.milk}
+              trackColor={{ false: '#E8E8E8', true: C.primary }}
+              thumbColor={C.surface}
             />
           </View>
 
@@ -137,7 +137,7 @@ const EditUserAdminScreen = ({ route, navigation }) => {
             disabled={saving}
             onPress={handleUpdate}
           >
-            {saving ? <ActivityIndicator color={C.cream} /> : <Text style={s.btnText}>Apply Changes</Text>}
+            {saving ? <ActivityIndicator color={C.bg} /> : <Text style={s.btnText}>Apply Changes</Text>}
           </TouchableOpacity>
         </View>
       </View>
@@ -146,56 +146,59 @@ const EditUserAdminScreen = ({ route, navigation }) => {
 };
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: C.cream },
+  safeArea: { flex: 1, backgroundColor: C.bg },
   centered: { justifyContent: 'center', alignItems: 'center' },
   topBar: {
-    backgroundColor: C.mocha,
-    paddingTop: STATUSBAR_HEIGHT,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
+    backgroundColor: C.bg,
+    paddingTop: Platform.OS === 'ios' ? 10 : (StatusBar.currentHeight || 24) + 10,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backIcon: { fontSize: 24, color: C.cream, fontWeight: '700' },
-  topBarTitle: { fontSize: 19, fontWeight: '700', color: C.cream },
+  backBtn: { width: 40, height: 40, justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'row' },
+  topBarTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
   deleteBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-end' },
-  deleteIcon: { fontSize: 20 },
   container: { flex: 1, padding: 24 },
   formWrap: {
-    backgroundColor: C.milk,
-    borderRadius: 20,
+    backgroundColor: C.surface,
+    borderRadius: 24,
     padding: 24,
-    shadowColor: C.espresso,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.03,
+    shadowRadius: 20,
+    elevation: 4,
   },
-  field: { marginBottom: 20 },
+  field: { marginBottom: 24 },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
-  label: { fontSize: 14, fontWeight: '600', color: C.textDark, marginBottom: 8 },
-  metaText: { fontSize: 12, color: C.textMuted },
+  label: { fontSize: 13, fontWeight: '700', color: C.textMuted, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+  metaText: { fontSize: 12, color: C.textMuted, marginTop: 4 },
   input: {
-    backgroundColor: C.fog,
-    borderWidth: 1.5,
-    borderColor: '#E8DDD3',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    backgroundColor: '#FBFBFB',
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     fontSize: 16,
     color: C.textDark,
   },
   btn: {
-    backgroundColor: C.walnut,
-    borderRadius: 14,
-    paddingVertical: 16,
+    backgroundColor: C.primary,
+    borderRadius: 16,
+    paddingVertical: 18,
     alignItems: 'center',
     marginTop: 20,
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 6,
   },
-  btnDisabled: { backgroundColor: C.textMuted },
-  btnText: { color: C.cream, fontSize: 16, fontWeight: '700' },
+  btnDisabled: { opacity: 0.7 },
+  btnText: { color: C.bg, fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
 });
 
 export default EditUserAdminScreen;

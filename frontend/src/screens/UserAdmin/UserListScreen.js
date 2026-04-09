@@ -6,21 +6,20 @@ import {
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from '../../context/AuthContext';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
 const BASE_URL = 'http://192.168.8.169:5001/api';
 
+// ── Ultra Premium Modern Palette ──────────────────────
 const C = {
-  mocha:    '#4A2C2A',
-  walnut:   '#6B4226',
-  caramel:  '#A0673C',
-  cream:    '#FFF8F0',
-  milk:     '#FFFFFF',
-  fog:      '#F5EDE4',
-  textDark: '#2D1810',
-  textMuted:'#8C7B6F',
-  danger:   '#C0392B',
-  success:  '#2E7D32',
+  primary:     '#FA4A0C', 
+  bg:          '#F9F9FB', 
+  surface:     '#FFFFFF', 
+  textDark:    '#1A1A1A', 
+  textMuted:   '#9A9A9D', 
+  danger:      '#FF4B4B',
+  success:     '#2E7D32',
+  border:      '#E8E8E8',
 };
 
 const UserListScreen = ({ navigation }) => {
@@ -64,26 +63,26 @@ const UserListScreen = ({ navigation }) => {
       </View>
       <View style={s.meta}>
         {item.isAdmin ? (
-          <View style={[s.badge, { backgroundColor: C.success }]}>
-            <Text style={s.badgeText}>Admin</Text>
+          <View style={[s.badge, { backgroundColor: '#E8F5E9' }]}>
+            <Text style={[s.badgeText, { color: C.success }]}>Admin</Text>
           </View>
         ) : (
-          <View style={[s.badge, { backgroundColor: C.textMuted }]}>
-            <Text style={s.badgeText}>User</Text>
+          <View style={[s.badge, { backgroundColor: '#F3F3F5' }]}>
+            <Text style={[s.badgeText, { color: C.textMuted }]}>User</Text>
           </View>
         )}
-        <Text style={s.arrow}>›</Text>
+        <MaterialIcons name="chevron-right" size={24} color={C.border} />
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={s.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={C.mocha} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <View style={s.topBar}>
         <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={s.backIcon}>←</Text>
+          <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
         </TouchableOpacity>
         <Text style={s.topBarTitle}>Manage Users</Text>
         <View style={{ width: 40 }} />
@@ -91,7 +90,7 @@ const UserListScreen = ({ navigation }) => {
 
       {loading ? (
         <View style={s.centered}>
-          <ActivityIndicator size="large" color={C.mocha} />
+          <ActivityIndicator size="large" color={C.primary} />
         </View>
       ) : (
         <FlatList
@@ -100,7 +99,10 @@ const UserListScreen = ({ navigation }) => {
           renderItem={renderItem}
           contentContainerStyle={s.list}
           ListEmptyComponent={
-            <Text style={s.empty}>No users found.</Text>
+            <View style={{ alignItems: 'center', marginTop: 50 }}>
+              <MaterialIcons name="group-off" size={48} color={C.border} style={{ marginBottom: 10 }} />
+              <Text style={s.empty}>No users found.</Text>
+            </View>
           }
         />
       )}
@@ -109,52 +111,50 @@ const UserListScreen = ({ navigation }) => {
 };
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: C.cream },
+  safeArea: { flex: 1, backgroundColor: C.bg },
   topBar: {
-    backgroundColor: C.mocha,
-    paddingTop: STATUSBAR_HEIGHT,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
+    backgroundColor: C.bg,
+    paddingTop: Platform.OS === 'ios' ? 10 : (StatusBar.currentHeight || 24) + 10,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backIcon: { fontSize: 24, color: C.cream, fontWeight: '700' },
-  topBarTitle: { fontSize: 19, fontWeight: '700', color: C.cream },
+  topBarTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  list: { padding: 16 },
+  list: { padding: 20 },
   userCard: {
-    backgroundColor: C.milk,
-    borderRadius: 16,
+    backgroundColor: C.surface,
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: C.espresso,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
     elevation: 2,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: C.fog,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFF0ED',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
-  avatarText: { fontSize: 18, fontWeight: '700', color: C.walnut },
+  avatarText: { fontSize: 18, fontWeight: '800', color: C.primary },
   userInfo: { flex: 1 },
-  name: { fontSize: 16, fontWeight: '700', color: C.textDark, marginBottom: 2 },
+  name: { fontSize: 16, fontWeight: '700', color: C.textDark, marginBottom: 4 },
   email: { fontSize: 13, color: C.textMuted },
   meta: { flexDirection: 'row', alignItems: 'center' },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginRight: 10 },
-  badgeText: { fontSize: 10, fontWeight: '700', color: '#fff', textTransform: 'uppercase' },
-  arrow: { fontSize: 24, color: '#D1CBC4' },
-  empty: { textAlign: 'center', marginTop: 40, color: C.textMuted },
+  badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginRight: 8 },
+  badgeText: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
+  empty: { textAlign: 'center', color: C.textMuted, fontSize: 14 },
 });
 
 export default UserListScreen;
