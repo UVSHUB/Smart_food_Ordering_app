@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, SafeAreaView, ActivityIndicator, StatusBar, Alert, Switch
+  StyleSheet, SafeAreaView, ActivityIndicator, StatusBar, Alert, Switch, Image
 } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -45,6 +45,13 @@ const RegisterScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
       <View style={s.container}>
         <View style={s.headerWrap}>
+          <View style={s.logoWrap}>
+            <Image 
+              source={require('../../../assets/logo.png')} 
+              style={s.logo}
+              resizeMode="contain" 
+            />
+          </View>
           <Text style={s.title}>Create Account</Text>
           <Text style={s.subtitle}>Sign up to order delicious meals</Text>
         </View>
@@ -131,9 +138,14 @@ const RegisterScreen = ({ navigation }) => {
 const s = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: C.bg },
   container: { flex: 1, justifyContent: 'center', paddingHorizontal: 30 },
-  headerWrap: { alignItems: 'flex-start', marginBottom: 40, marginTop: 20 },
-  title: { fontSize: 32, fontWeight: '800', color: C.textDark, marginBottom: 8, letterSpacing: -0.5 },
-  subtitle: { fontSize: 16, color: C.textMuted },
+  headerWrap: { alignItems: 'center', marginBottom: 20, marginTop: 10 },
+  logoWrap: {
+    width: 120, height: 120, marginBottom: 0,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  logo: { width: '100%', height: '100%' },
+  title: { fontSize: 28, fontWeight: '800', color: C.textDark, marginBottom: 4, letterSpacing: -0.5 },
+  subtitle: { fontSize: 14, color: C.textMuted },
   formWrap: {},
   field: { marginBottom: 20 },
   label: { fontSize: 13, fontWeight: '700', color: C.textMuted, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },

@@ -175,7 +175,11 @@ const UserMenuScreen = ({ navigation }) => {
 
       {/* Top Header Bar */}
       <View style={s.topBar}>
-        <MaterialIcons name="restaurant" size={24} color={C.primary} style={{ marginRight: 8 }} />
+        <Image 
+          source={require('../../../assets/logo.png')} 
+          style={s.topBarLogo}
+          resizeMode="contain" 
+        />
         <Text style={s.topBarTitle}>SLIIT KADE</Text>
       </View>
 
@@ -296,6 +300,7 @@ const s = StyleSheet.create({
     backgroundColor: C.bg,
   },
   topBarTitle: { fontSize: 20, fontWeight: '800', color: C.textDark, letterSpacing: -0.5 },
+  topBarLogo: { width: 32, height: 32, marginRight: 8 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
 
   // Greeting

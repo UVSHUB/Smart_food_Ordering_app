@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Platform, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
@@ -22,7 +22,14 @@ const AdminDashboardScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <View style={s.topBar}>
-        <Text style={s.topBarTitle}>Admin Dashboard</Text>
+        <View style={s.headerMain}>
+          <Image 
+            source={require('../../../assets/logo.png')} 
+            style={s.topBarLogo}
+            resizeMode="contain" 
+          />
+          <Text style={s.topBarTitle}>Admin Dashboard</Text>
+        </View>
       </View>
 
       <View style={s.container}>
@@ -71,7 +78,9 @@ const s = StyleSheet.create({
     paddingBottom: 16,
     paddingHorizontal: 24,
   },
-  topBarTitle: { fontSize: 28, fontWeight: '800', color: C.textDark, letterSpacing: -0.5 },
+  headerMain: { flexDirection: 'row', alignItems: 'center' },
+  topBarLogo: { width: 36, height: 36, marginRight: 10 },
+  topBarTitle: { fontSize: 24, fontWeight: '800', color: C.textDark, letterSpacing: -0.5 },
   container: { padding: 24 },
   sectionHeader: { 
     fontSize: 13, 

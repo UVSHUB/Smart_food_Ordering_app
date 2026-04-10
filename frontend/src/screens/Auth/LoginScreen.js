@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, SafeAreaView, ActivityIndicator, StatusBar, Alert
+  StyleSheet, SafeAreaView, ActivityIndicator, StatusBar, Alert, Image
 } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -43,8 +43,12 @@ const LoginScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
       <View style={s.container}>
         <View style={s.headerWrap}>
-          <View style={s.iconWrap}>
-            <MaterialIcons name="restaurant" size={48} color={C.primary} />
+          <View style={s.logoWrap}>
+            <Image 
+              source={require('../../../assets/logo.png')} 
+              style={s.logo}
+              resizeMode="contain" 
+            />
           </View>
           <Text style={s.title}>Welcome Back</Text>
           <Text style={s.subtitle}>Login to view your favorite foods</Text>
@@ -107,11 +111,12 @@ const LoginScreen = ({ navigation }) => {
 const s = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: C.bg },
   container: { flex: 1, justifyContent: 'center', paddingHorizontal: 30 },
-  headerWrap: { alignItems: 'center', marginBottom: 50 },
-  iconWrap: {
-    width: 90, height: 90, borderRadius: 30, backgroundColor: '#FFF0ED',
-    justifyContent: 'center', alignItems: 'center', marginBottom: 20,
+  headerWrap: { alignItems: 'center', marginBottom: 40 },
+  logoWrap: {
+    width: 200, height: 200, marginBottom: 10,
+    justifyContent: 'center', alignItems: 'center',
   },
+  logo: { width: '100%', height: '100%' },
   title: { fontSize: 26, fontWeight: '800', color: C.textDark, marginBottom: 8, letterSpacing: -0.5 },
   subtitle: { fontSize: 15, color: C.textMuted },
   formWrap: {},
