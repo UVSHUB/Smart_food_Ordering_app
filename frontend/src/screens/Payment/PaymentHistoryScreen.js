@@ -65,12 +65,26 @@ const PaymentHistoryScreen = ({ navigation }) => {
           <Text style={s.cardTitle}>{item.payment_method} Payment</Text>
           <Text style={s.cardDate}>{date}</Text>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
+        <View style={{ alignItems: 'flex-end', gap: 6 }}>
           <Text style={s.cardAmount}>Rs. {(item.amount || 0).toFixed(2)}</Text>
-          <View style={[s.statusBadge, { backgroundColor: isPaid ? '#F0FDF4' : '#FFFBEB' }]}>
-            <Text style={[s.statusText, { color: isPaid ? C.success : C.pending }]}>
-              {item.status}
-            </Text>
+          <View style={s.badgeRow}>
+            {/* Payment Status */}
+            <View style={[s.statusBadge, { backgroundColor: isPaid ? '#F0FDF4' : '#FFFBEB' }]}>
+              <Text style={[s.statusText, { color: isPaid ? C.success : C.pending }]}>
+                {item.status}
+              </Text>
+            </View>
+            
+            {/* Order Status */}
+            <View style={[s.statusBadge, { 
+              backgroundColor: item.order_status === 'Delivered' ? '#F0FDF4' : (item.order_status === 'Preparing' ? '#EFF6FF' : '#FFFBEB') 
+            }]}>
+              <Text style={[s.statusText, { 
+                color: item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending) 
+              }]}>
+                {item.order_status || 'Pending'}
+              </Text>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -149,9 +163,10 @@ const s = StyleSheet.create({
   cardBody: { flex: 1 },
   cardTitle: { fontSize: 15, fontWeight: '700', color: C.textDark, marginBottom: 4 },
   cardDate: { fontSize: 13, color: C.textMuted },
-  cardAmount: { fontSize: 16, fontWeight: '800', color: C.textDark, marginBottom: 6 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  statusText: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
+  cardAmount: { fontSize: 16, fontWeight: '800', color: C.textDark },
+  badgeRow: { flexDirection: 'row', gap: 6, marginTop: 4 },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  statusText: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase' },
 
   empty: { alignItems: 'center', marginTop: 80 },
   emptyText: { fontSize: 18, fontWeight: '700', color: C.textMuted, marginTop: 16 },

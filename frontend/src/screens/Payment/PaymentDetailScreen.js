@@ -89,12 +89,46 @@ const PaymentDetailScreen = ({ route, navigation }) => {
           <Text style={s.heroDate}>{date}</Text>
         </View>
 
+        {/* Order Progress Tracker */}
+        <View style={s.trackerCard}>
+          <Text style={s.trackerTitle}>Order Progress</Text>
+          <View style={s.trackerContainer}>
+            {/* Step 1: Pending */}
+            <TrackerStep 
+              icon="receipt-long" 
+              label="Received" 
+              active={['Pending', 'Preparing', 'Delivered'].includes(payment.order_status || 'Pending')} 
+              completed={['Preparing', 'Delivered'].includes(payment.order_status)}
+            />
+            <TrackerLine active={['Preparing', 'Delivered'].includes(payment.order_status)} />
+            
+            {/* Step 2: Preparing */}
+            <TrackerStep 
+              icon="restaurant" 
+              label="Kitchen" 
+              active={['Preparing', 'Delivered'].includes(payment.order_status)} 
+              completed={['Delivered'].includes(payment.order_status)}
+            />
+            <TrackerLine active={['Delivered'].includes(payment.order_status)} />
+            
+            {/* Step 3: Delivered */}
+            <TrackerStep 
+              icon="verified" 
+              label="Delivered" 
+              active={['Delivered'].includes(payment.order_status)} 
+              completed={false}
+              isLast
+            />
+          </View>
+        </View>
+
         {/* Detail Rows */}
         <View style={s.detailCard}>
           <DetailRow icon="tag" label="Payment ID" value={payment._id} mono />
           <DetailRow icon={METHOD_ICONS[payment.payment_method] || 'receipt'} label="Method" value={payment.payment_method} />
           <DetailRow icon="attach-money" label="Amount" value={`Rs. ${(payment.amount || 0).toFixed(2)}`} />
-          <DetailRow icon="info" label="Status" value={payment.status} last />
+          <DetailRow icon="info" label="Payment Status" value={payment.status} />
+          <DetailRow icon="restaurant" label="Order Status" value={payment.order_status || 'Pending'} last />
         </View>
 
         {/* Action Button */}
@@ -138,6 +172,45 @@ const DetailRow = ({ icon, label, value, mono = false, last = false }) => (
   </View>
 );
 
+// Order Tracker Components
+const TrackerStep = ({ icon, label, active, completed, isLast }) => (
+  <View style={ts.stepWrap}>
+    <View style={[ts.iconCircle, active && ts.activeCircle, completed && ts.completedCircle]}>
+      <MaterialIcons 
+        name={completed ? 'check' : icon} 
+        size={18} 
+        color={active ? '#fff' : C.textMuted} 
+      />
+    </View>
+    <Text style={[ts.label, active && ts.activeLabel]}>{label}</Text>
+  </View>
+);
+
+const TrackerLine = ({ active }) => (
+  <View style={ts.lineWrap}>
+    <View style={[ts.line, active && ts.activeLine]} />
+  </View>
+);
+
+const ts = StyleSheet.create({
+  stepWrap: { alignItems: 'center', width: 70 },
+  iconCircle: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center', alignItems: 'center',
+    marginBottom: 8,
+    borderWidth: 2,
+    borderColor: 'transparent'
+  },
+  activeCircle: { backgroundColor: C.primary, shadowColor: C.primary, shadowOpacity: 0.3, shadowRadius: 5, elevation: 3 },
+  completedCircle: { backgroundColor: C.success },
+  label: { fontSize: 10, fontWeight: '700', color: C.textMuted, textTransform: 'uppercase' },
+  activeLabel: { color: C.textDark },
+  lineWrap: { flex: 1, height: 36, justifyContent: 'center', paddingHorizontal: 4 },
+  line: { height: 2, backgroundColor: '#E5E7EB', borderRadius: 1 },
+  activeLine: { backgroundColor: C.primary },
+});
+
 const dr = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16 },
   border: { borderBottomWidth: 1, borderBottomColor: C.border },
@@ -177,16 +250,23 @@ const s = StyleSheet.create({
   heroDate: { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: '500' },
 
   detailCard: {
+    elevation: 3,
+    marginBottom: 24,
+  },
+
+  trackerCard: {
     backgroundColor: C.surface,
     borderRadius: 20,
-    paddingHorizontal: 20,
+    padding: 24,
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.03,
     shadowRadius: 12,
     elevation: 3,
-    marginBottom: 24,
   },
+  trackerTitle: { fontSize: 13, fontWeight: '800', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 20, textAlign: 'center' },
+  trackerContainer: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center' },
 
   actionBtn: {
     backgroundColor: C.success,

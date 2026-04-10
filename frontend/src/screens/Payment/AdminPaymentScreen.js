@@ -64,6 +64,22 @@ const AdminPaymentScreen = ({ navigation }) => {
     );
   };
 
+  const handleUpdateOrderStatus = async (id, currentStatus) => {
+    const nextStatusMap = {
+      'Pending': 'Preparing',
+      'Preparing': 'Delivered',
+      'Delivered': 'Pending' // wrap around
+    };
+    const nextStatus = nextStatusMap[currentStatus] || 'Pending';
+
+    try {
+      const { data } = await axios.put(`${BASE_URL}/payments/${id}`, { order_status: nextStatus });
+      setPayments((prev) => prev.map((p) => (p._id === id ? data : p)));
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update order status.');
+    }
+  };
+
   const renderItem = ({ item }) => {
     const isPaid = item.status === 'Paid';
     const date = new Date(item.createdAt).toLocaleDateString('en-US', {
@@ -83,8 +99,32 @@ const AdminPaymentScreen = ({ navigation }) => {
         <View style={s.cardBody}>
           <Text style={s.userName}>{item.user_id?.name || 'Unknown User'}</Text>
           <Text style={s.cardMeta}>{item.payment_method} · {date}</Text>
-          <View style={[s.badge, { backgroundColor: isPaid ? '#F0FDF4' : '#FFFBEB' }]}>
-            <Text style={[s.badgeText, { color: isPaid ? C.success : C.pending }]}>{item.status}</Text>
+          
+          <View style={s.badgeRow}>
+            {/* Payment Status Badge */}
+            <View style={[s.badge, { backgroundColor: isPaid ? '#F0FDF4' : '#FFFBEB' }]}>
+              <Text style={[s.badgeText, { color: isPaid ? C.success : C.pending }]}>{item.status}</Text>
+            </View>
+
+            {/* Order Status Badge (Actionable) */}
+            <TouchableOpacity 
+              onPress={() => handleUpdateOrderStatus(item._id, item.order_status)}
+              style={[s.statusUpdateBtn, { 
+                backgroundColor: item.order_status === 'Delivered' ? '#F0FDF4' : (item.order_status === 'Preparing' ? '#EFF6FF' : '#FFFBEB') 
+              }]}
+            >
+              <MaterialIcons 
+                name={item.order_status === 'Delivered' ? 'check-circle' : (item.order_status === 'Preparing' ? 'restaurant' : 'schedule')} 
+                size={14} 
+                color={item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending)} 
+                style={{ marginRight: 4 }}
+              />
+              <Text style={[s.badgeText, { 
+                color: item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending) 
+              }]}>
+                {item.order_status || 'Pending'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -211,9 +251,19 @@ const s = StyleSheet.create({
   },
   cardBody: { flex: 1 },
   userName: { fontSize: 15, fontWeight: '700', color: C.textDark, marginBottom: 4 },
-  cardMeta: { fontSize: 13, color: C.textMuted, marginBottom: 6 },
-  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
-  badgeText: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
+  cardMeta: { fontSize: 13, color: C.textMuted, marginBottom: 10 },
+  badgeRow: { flexDirection: 'row', gap: 8 },
+  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  statusUpdateBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 10, 
+    paddingVertical: 4, 
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)'
+  },
+  badgeText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
   amount: { fontSize: 15, fontWeight: '800', color: C.textDark },
   deleteBtn: { padding: 4 },
 

@@ -19,6 +19,7 @@ const createPayment = async (req, res) => {
       amount,
       payment_method: payment_method || 'Cash',
       status: 'Pending',
+      order_status: 'Pending',
     });
 
     const saved = await payment.save();
@@ -70,7 +71,7 @@ const getUserPayments = async (req, res) => {
 // Update payment status or method
 const updatePayment = async (req, res) => {
   try {
-    const { status, payment_method } = req.body;
+    const { status, payment_method, order_status } = req.body;
 
     const payment = await Payment.findById(req.params.id);
     if (!payment) {
@@ -79,6 +80,7 @@ const updatePayment = async (req, res) => {
 
     if (status) payment.status = status;
     if (payment_method) payment.payment_method = payment_method;
+    if (order_status) payment.order_status = order_status;
 
     const updated = await payment.save();
     res.json(updated);

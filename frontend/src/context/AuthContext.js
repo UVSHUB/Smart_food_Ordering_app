@@ -1,9 +1,9 @@
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-
+axios.defaults.timeout = 10000;
 // Backend IP and Port
-const BASE_URL = 'http://10.94.178.167:5001/api';
+const BASE_URL = 'http://192.168.8.169:5001/api';
 
 export const AuthContext = createContext();
 

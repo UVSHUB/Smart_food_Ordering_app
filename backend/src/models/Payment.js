@@ -26,6 +26,11 @@ const paymentSchema = new mongoose.Schema(
       enum: ['Pending', 'Paid'],
       default: 'Pending',
     },
+    order_status: {
+      type: String,
+      enum: ['Pending', 'Preparing', 'Delivered'],
+      default: 'Pending',
+    },
   },
   {
     timestamps: true, // adds createdAt and updatedAt automatically
