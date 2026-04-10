@@ -81,11 +81,18 @@ const UserListScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <View style={s.topBar}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
+        <View style={s.topBarMain}>
+          <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
+          </TouchableOpacity>
+          <View>
+            <Text style={s.topBarTitle}>Manage Users</Text>
+            <Text style={s.topBarSubtitle}>{users.length} active members</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={s.refreshBtn} onPress={fetchUsers}>
+          <MaterialIcons name="refresh" size={22} color={C.primary} />
         </TouchableOpacity>
-        <Text style={s.topBarTitle}>Manage Users</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       {loading ? (
@@ -121,8 +128,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  topBarMain: { flexDirection: 'row', alignItems: 'center' },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  topBarTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
+  topBarTitle: { fontSize: 24, fontWeight: '800', color: C.textDark, letterSpacing: -0.5 },
+  topBarSubtitle: { fontSize: 12, color: C.textMuted, marginTop: 2, fontWeight: '600' },
+  refreshBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-end' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: 20 },
   userCard: {

@@ -143,12 +143,17 @@ const AdminPaymentScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <View style={s.topBar}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
-        </TouchableOpacity>
-        <Text style={s.topBarTitle}>All Payments</Text>
-        <TouchableOpacity onPress={fetchPayments}>
-          <MaterialIcons name="refresh" size={24} color={C.primary} />
+        <View style={s.topBarMain}>
+          <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
+          </TouchableOpacity>
+          <View>
+            <Text style={s.topBarTitle}>All Payments</Text>
+            <Text style={s.topBarSubtitle}>Transaction overview</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={s.refreshBtn} onPress={fetchPayments}>
+          <MaterialIcons name="refresh" size={22} color={C.primary} />
         </TouchableOpacity>
       </View>
 
@@ -208,8 +213,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  topBarMain: { flexDirection: 'row', alignItems: 'center' },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  topBarTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
+  topBarTitle: { fontSize: 24, fontWeight: '800', color: C.textDark, letterSpacing: -0.5 },
+  topBarSubtitle: { fontSize: 12, color: C.textMuted, marginTop: 2, fontWeight: '600' },
+  refreshBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-end' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: 20 },
 

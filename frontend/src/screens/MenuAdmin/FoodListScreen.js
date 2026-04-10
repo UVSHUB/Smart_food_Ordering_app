@@ -166,23 +166,25 @@ const FoodListScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <View style={s.header}>
-        <View>
-          <Text style={s.headerTitle}>Menu Items</Text>
-          <Text style={s.headerSubtitle}>{foods.length} items total</Text>
-        </View>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity
-            style={[s.actionAddBtn, { backgroundColor: '#1A1A1A' }]}
-            onPress={() => navigation.navigate('AdminPayments')}
-            activeOpacity={0.8}
-          >
-            <MaterialIcons name="receipt-long" size={20} color="#fff" />
-            <Text style={s.actionAddText}>Payments</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.actionAddBtn} onPress={() => navigation.navigate('AddFood')} activeOpacity={0.8}>
-            <MaterialIcons name="add" size={22} color={C.surface} />
-            <Text style={s.actionAddText}>Add New</Text>
-          </TouchableOpacity>
+        <View style={s.headerMain}>
+          <View>
+            <Text style={s.headerTitle}>Menu Items</Text>
+            <Text style={s.headerSubtitle}>{foods.length} items total</Text>
+          </View>
+          <View style={s.headerActions}>
+            <TouchableOpacity
+              style={[s.actionAddBtn, { backgroundColor: '#1A1A1A' }]}
+              onPress={() => navigation.navigate('AdminPayments')}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="receipt-long" size={18} color="#fff" />
+              <Text style={s.actionAddText}>Payments</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.actionAddBtn} onPress={() => navigation.navigate('AddFood')} activeOpacity={0.8}>
+              <MaterialIcons name="add" size={20} color={C.surface} />
+              <Text style={s.actionAddText}>Add New</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -242,30 +244,39 @@ const s = StyleSheet.create({
   
   // Header
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 20,
     backgroundColor: C.bg,
   },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: C.textDark, letterSpacing: -0.5 },
-  headerSubtitle: { fontSize: 14, color: C.textMuted, marginTop: 4 },
+  headerMain: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  headerTitle: { fontSize: 26, fontWeight: '800', color: C.textDark, letterSpacing: -0.5 },
+  headerSubtitle: { fontSize: 13, color: C.textMuted, marginTop: 2 },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
   actionAddBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: C.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     shadowColor: C.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  actionAddText: { color: C.surface, fontWeight: '700', fontSize: 13, marginLeft: 4 },
+  actionAddText: { color: C.surface, fontWeight: '700', fontSize: 12, marginLeft: 4 },
 
   // List
   list: { paddingHorizontal: 20, paddingBottom: 100 },
