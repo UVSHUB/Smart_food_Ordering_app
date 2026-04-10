@@ -5,9 +5,10 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
-const BASE_URL = 'http://192.168.8.169:5001/api/foods';
+const BASE_URL = 'http://10.94.178.167:5001/api/foods';
 
 // ── Ultra Premium Modern Palette ──────────────────────
 const C = {
@@ -37,8 +38,27 @@ const EditFoodScreen = ({ route, navigation }) => {
   const [price, setPrice] = useState(food.price ? food.price.toString() : '');
   const [description, setDescription] = useState(food.description || '');
   const [category, setCategory] = useState(food.category || 'Meals');
-  const [image, setImage] = useState(food.image || '');
+  const [image, setImage] = useState(food.image || null);
   const [loading, setLoading] = useState(false);
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions!');
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0]);
+    }
+  };
 
   const handleEditSubmit = async () => {
     if (!name.trim() || !price.trim() || !description.trim()) {
@@ -52,16 +72,30 @@ const EditFoodScreen = ({ route, navigation }) => {
 
     try {
       setLoading(true);
-      const updatedFoodData = {
-        name,
-        price: Number(price),
-        description,
-        category,
-        image,
-      };
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('price', Number(price));
+      formData.append('description', description);
+      formData.append('category', category);
 
-      const config = { headers: { 'Content-Type': 'application/json' } };
-      await axios.put(`${BASE_URL}/${food._id}`, updatedFoodData, config);
+      // If a new image was picked (it will be an object with assets[0] structure)
+      if (image && typeof image === 'object' && image.uri) {
+        const uriParts = image.uri.split('.');
+        const fileType = uriParts[uriParts.length - 1];
+        
+        formData.append('image', {
+          uri: Platform.OS === 'android' ? image.uri : image.uri.replace('file://', ''),
+          name: `food-image-${Date.now()}.${fileType}`,
+          type: `image/${fileType}`,
+        });
+      } else if (typeof image === 'string') {
+        // If it's a string, it's the existing path/url
+        formData.append('image', image);
+      }
+
+      await axios.put(`${BASE_URL}/${food._id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       
       Alert.alert('Updated!', `"${name}" has been updated successfully.`, [
         { text: 'OK', onPress: () => navigation.goBack() },
@@ -145,26 +179,33 @@ const EditFoodScreen = ({ route, navigation }) => {
           </View>
 
           <View style={s.field}>
-            <Text style={s.label}>Image URL <Text style={s.optional}>(optional)</Text></Text>
+            <Text style={s.label}>Food Image</Text>
             {image ? (
               <View style={s.imagePreviewWrap}>
-                <Image source={{ uri: image }} style={s.imagePreview} />
+                <Image 
+                  source={{ 
+                    uri: typeof image === 'string' 
+                      ? (image.startsWith('http') ? image : `http://10.94.178.167:5001${image}`) 
+                      : image.uri 
+                  }} 
+                  style={s.imagePreview} 
+                />
+                <TouchableOpacity style={s.removeImageBtn} onPress={() => setImage(null)}>
+                  <MaterialIcons name="close" size={20} color="#fff" />
+                </TouchableOpacity>
               </View>
             ) : (
-              <View style={[s.imagePreviewWrap, s.emptyImagePreview]}>
-                <MaterialIcons name="image" size={32} color={C.border} style={{ marginBottom: 8 }} />
-                <Text style={s.emptyImageText}>No preview</Text>
-              </View>
+              <TouchableOpacity style={[s.imagePreviewWrap, s.emptyImagePreview]} onPress={pickImage}>
+                <MaterialIcons name="add-a-photo" size={32} color={C.primary} style={{ marginBottom: 8 }} />
+                <Text style={s.emptyImageText}>Tap to select image</Text>
+              </TouchableOpacity>
             )}
-            <TextInput
-              style={s.input}
-              value={image}
-              onChangeText={setImage}
-              placeholder="https://example.com/photo.jpg"
-              placeholderTextColor={C.textMuted}
-              autoCapitalize="none"
-              keyboardType="url"
-            />
+            
+            {image && (
+              <TouchableOpacity style={s.changeImageBtn} onPress={pickImage}>
+                <Text style={s.changeImageText}>Change Image</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={s.field}>
@@ -279,6 +320,12 @@ const s = StyleSheet.create({
   imagePreview: { width: '100%', height: '100%', resizeMode: 'cover' },
   emptyImagePreview: { justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: C.border, borderStyle: 'dashed' },
   emptyImageText: { color: C.textMuted, fontSize: 13, fontWeight: '600' },
+  removeImageBtn: {
+    position: 'absolute', top: 10, right: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: 6
+  },
+  changeImageBtn: { alignSelf: 'center', marginTop: -8, marginBottom: 16 },
+  changeImageText: { color: C.primary, fontSize: 14, fontWeight: '700' },
 
   textArea: { height: 120, paddingTop: 16 },
 

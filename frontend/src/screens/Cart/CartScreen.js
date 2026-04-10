@@ -29,7 +29,7 @@ const CartScreen = ({ navigation }) => {
   const renderItem = ({ item }) => {
     const imageUri = item.image && item.image.startsWith('http')
       ? item.image
-      : `http://192.168.8.169:5001${item.image || ''}`;
+      : `http://10.94.178.167:5001${item.image || ''}`;
 
     return (
       <View style={s.card}>

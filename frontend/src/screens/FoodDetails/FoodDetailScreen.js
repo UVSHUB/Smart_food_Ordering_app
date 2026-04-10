@@ -39,7 +39,7 @@ const FoodDetailScreen = ({ route, navigation }) => {
   const imageUrl = food.image
     ? food.image.startsWith('http')
       ? food.image
-      : `http://192.168.8.169:5001${food.image}`
+      : `http://10.94.178.167:5001${food.image}`
     : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600';
 
   return (

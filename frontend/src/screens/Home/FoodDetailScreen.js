@@ -9,7 +9,7 @@ import { useCart } from '../../context/CartContext';
 import { useIsFocused } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const BASE_URL = 'http://192.168.8.169:5001/api';
+const BASE_URL = 'http://10.94.178.167:5001/api';
 
 const C = {
   primary:   '#FA4A0C',
@@ -143,7 +143,7 @@ const FoodDetailScreen = ({ route, navigation }) => {
 
   const imageUri = food.image && food.image.startsWith('http')
     ? food.image
-    : `http://192.168.8.169:5001${food.image || '/images/sample-food.jpg'}`;
+    : `http://10.94.178.167:5001${food.image || '/images/sample-food.jpg'}`;
 
   return (
     <View style={s.safeArea}>

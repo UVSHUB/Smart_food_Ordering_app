@@ -7,7 +7,7 @@ import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const BASE_URL = 'http://192.168.8.169:5001/api';
+const BASE_URL = 'http://10.94.178.167:5001/api';
 
 // ── Ultra Premium Modern Palette ──────────────────────
 const C = {
