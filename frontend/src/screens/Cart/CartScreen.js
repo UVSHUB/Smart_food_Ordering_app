@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useCart } from '../../context/CartContext';
 import { MaterialIcons } from '@expo/vector-icons';
+import { IMAGE_BASE_URL } from '../../services/api';
 
 const C = {
   primary:   '#FA4A0C',
@@ -29,7 +30,7 @@ const CartScreen = ({ navigation }) => {
   const renderItem = ({ item }) => {
     const imageUri = item.image && item.image.startsWith('http')
       ? item.image
-      : `http://10.94.178.167:5001${item.image || ''}`;
+      : `${IMAGE_BASE_URL}${item.image || ''}`;
 
     return (
       <View style={s.card}>

@@ -8,8 +8,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useIsFocused } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-
-const BASE_URL = 'http://10.94.178.167:5001/api';
+import { BASE_URL, IMAGE_BASE_URL } from '../../services/api';
 
 const C = {
   primary:   '#FA4A0C',
@@ -143,7 +142,7 @@ const FoodDetailScreen = ({ route, navigation }) => {
 
   const imageUri = food.image && food.image.startsWith('http')
     ? food.image
-    : `http://10.94.178.167:5001${food.image || '/images/sample-food.jpg'}`;
+    : `${IMAGE_BASE_URL}${food.image || '/images/sample-food.jpg'}`;
 
   return (
     <View style={s.safeArea}>

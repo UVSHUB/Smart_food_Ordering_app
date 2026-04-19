@@ -8,7 +8,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
-const BASE_URL = 'http://10.94.178.167:5001/api/foods';
+import { BASE_URL } from '../../services/api';
+
+const FOODS_URL = `${BASE_URL}/foods`;
 
 // ── Ultra Premium Modern Palette ──────────────────────
 const C = {
@@ -87,7 +89,7 @@ const AddFoodScreen = ({ navigation }) => {
       }
 
       await axios.post(
-        BASE_URL,
+        FOODS_URL,
         formData,
         { 
           headers: { 

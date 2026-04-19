@@ -6,8 +6,9 @@ import {
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
+import { BASE_URL } from '../../services/api';
 
-const BASE_URL = 'http://10.94.178.167:5001/api/reviews';
+const REVIEWS_URL = `${BASE_URL}/reviews`;
 
 // ── Ultra Premium Modern Palette ──────────────────────
 const C = {
@@ -49,7 +50,7 @@ const AddReviewScreen = ({ route, navigation }) => {
       };
 
       await axios.post(
-        BASE_URL,
+        REVIEWS_URL,
         {
           food_id: foodId,
           rating,

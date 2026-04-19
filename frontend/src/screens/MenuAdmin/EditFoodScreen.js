@@ -8,7 +8,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
-const BASE_URL = 'http://10.94.178.167:5001/api/foods';
+import { BASE_URL, IMAGE_BASE_URL } from '../../services/api';
+
+const FOODS_URL = `${BASE_URL}/foods`;
 
 // ── Ultra Premium Modern Palette ──────────────────────
 const C = {
@@ -93,7 +95,7 @@ const EditFoodScreen = ({ route, navigation }) => {
         formData.append('image', image);
       }
 
-      await axios.put(`${BASE_URL}/${food._id}`, formData, {
+      await axios.put(`${FOODS_URL}/${food._id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
@@ -185,7 +187,7 @@ const EditFoodScreen = ({ route, navigation }) => {
                 <Image 
                   source={{ 
                     uri: typeof image === 'string' 
-                      ? (image.startsWith('http') ? image : `http://10.94.178.167:5001${image}`) 
+                      ? (image.startsWith('http') ? image : `${IMAGE_BASE_URL}${image}`) 
                       : image.uri 
                   }} 
                   style={s.imagePreview} 

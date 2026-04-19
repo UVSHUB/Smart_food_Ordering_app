@@ -6,8 +6,9 @@ import {
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
+import { BASE_URL } from '../../services/api';
 
-const BASE_URL = 'http://10.94.178.167:5001/api/reviews';
+const REVIEWS_URL = `${BASE_URL}/reviews`;
 
 // ── Ultra Premium Modern Palette ──────────────────────
 const C = {
@@ -48,7 +49,7 @@ const EditReviewScreen = ({ route, navigation }) => {
         },
       };
 
-      await axios.put(`${BASE_URL}/${review._id}`, {
+      await axios.put(`${REVIEWS_URL}/${review._id}`, {
         rating,
         comment
       }, config);

@@ -9,7 +9,9 @@ import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const BASE_URL = 'http://10.94.178.167:5001/api/foods';
+import { BASE_URL, IMAGE_BASE_URL } from '../../services/api';
+
+const FOODS_URL = `${BASE_URL}/foods`;
 
 // ── Ultra Premium Modern Palette ──────────────────────
 const C = {
@@ -44,7 +46,7 @@ const FoodListScreen = ({ navigation }) => {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
       setError(null);
-      const response = await axios.get(BASE_URL);
+      const response = await axios.get(FOODS_URL);
       setFoods(response.data);
     } catch (err) {
       console.log('Error fetching foods:', err);
@@ -72,7 +74,7 @@ const FoodListScreen = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await axios.delete(`${BASE_URL}/${id}`);
+              await axios.delete(`${FOODS_URL}/${id}`);
               fetchFoods();
             } catch {
               Alert.alert('Error', 'Failed to delete item.');
@@ -94,7 +96,7 @@ const FoodListScreen = ({ navigation }) => {
               uri: item.image
                 ? item.image.startsWith('http')
                   ? item.image
-                  : `http://10.94.178.167:5001${item.image}`
+                  : `${IMAGE_BASE_URL}${item.image}`
                 : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
             }}
             style={s.cardImage}

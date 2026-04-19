@@ -8,8 +8,8 @@ import {
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { BASE_URL, IMAGE_BASE_URL } from '../../services/api';
 
-const BASE_URL = 'http://10.94.178.167:5001/api/foods';
 const { width } = Dimensions.get('window');
 
 // ── Ultra Premium Modern Palette ──────────────────────
@@ -87,7 +87,7 @@ const UserMenuScreen = ({ navigation }) => {
               uri: hero.image
                 ? hero.image.startsWith('http')
                   ? hero.image
-                  : `http://10.94.178.167:5001${hero.image}`
+                  : `${IMAGE_BASE_URL}${hero.image}`
                 : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600',
             }}
             style={s.heroImage}
@@ -130,7 +130,7 @@ const UserMenuScreen = ({ navigation }) => {
           uri: item.image
             ? item.image.startsWith('http')
               ? item.image
-              : `http://10.94.178.167:5001${item.image}`
+              : `${IMAGE_BASE_URL}${item.image}`
             : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
         }}
         style={s.gridImage}
