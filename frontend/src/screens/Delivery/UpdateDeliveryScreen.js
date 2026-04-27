@@ -11,37 +11,39 @@ import { AuthContext } from '../../context/AuthContext';
 
 const STATUSES = ['Pending', 'Preparing', 'Out for Delivery', 'Delivered'];
 
-const STATUS_META = {
-  Pending:            { bg: '#FFF3E0', text: '#E65100', dot: '#FF9800', icon: 'hourglass-empty'  },
-  Preparing:          { bg: '#E3F2FD', text: '#0D47A1', dot: '#2196F3', icon: 'restaurant'       },
-  'Out for Delivery': { bg: '#F3E5F5', text: '#6A1B9A', dot: '#9C27B0', icon: 'delivery-dining'  },
-  Delivered:          { bg: '#E8F5E9', text: '#1B5E20', dot: '#4CAF50', icon: 'check-circle'     },
+const STATUS = {
+  Pending:            { bg: '#FFF8F0', text: '#C2410C', dot: '#F97316', icon: 'schedule'        },
+  Preparing:          { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6', icon: 'restaurant'      },
+  'Out for Delivery': { bg: '#FAF5FF', text: '#7E22CE', dot: '#A855F7', icon: 'delivery-dining' },
+  Delivered:          { bg: '#F0FDF4', text: '#15803D', dot: '#22C55E', icon: 'check-circle'    },
 };
 
 const C = {
   primary:   '#FA4A0C',
-  bg:        '#F9F9FB',
+  bg:        '#F4F4F6',
   surface:   '#FFFFFF',
-  textDark:  '#1A1A1A',
-  textMuted: '#9A9A9D',
-  border:    '#E8E8E8',
+  textDark:  '#111827',
+  textMid:   '#6B7280',
+  textLight: '#9CA3AF',
+  border:    '#E5E7EB',
 };
 
 export default function UpdateDeliveryScreen({ route, navigation }) {
-  const { user } = useContext(AuthContext);
+  const { user }     = useContext(AuthContext);
   const { delivery } = route.params;
 
-  // ── Security: only admin can access this screen ───────────────────────────
+  // ── Admin guard ─────────────────────────────────────────────────────────────
   if (!user?.isAdmin) {
     return (
       <SafeAreaView style={s.safe}>
-        <StatusBar barStyle="dark-content" />
-        <View style={s.noAccessWrap}>
-          <MaterialIcons name="lock" size={64} color={C.border} />
-          <Text style={s.noAccessTitle}>Admin Only</Text>
-          <Text style={s.noAccessSub}>You do not have permission to update delivery status.</Text>
-          <TouchableOpacity style={s.noAccessBtn} onPress={() => navigation.goBack()}>
-            <Text style={s.noAccessBtnText}>Go Back</Text>
+        <View style={s.guardWrap}>
+          <View style={s.guardIconBox}>
+            <MaterialIcons name="lock" size={36} color={C.textLight} />
+          </View>
+          <Text style={s.guardTitle}>Access Restricted</Text>
+          <Text style={s.guardSub}>Only administrators can update delivery status.</Text>
+          <TouchableOpacity style={s.guardBtn} onPress={() => navigation.goBack()}>
+            <Text style={s.guardBtnText}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -54,93 +56,84 @@ export default function UpdateDeliveryScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleUpdate = async () => {
-    if (!address.trim()) return Alert.alert('Missing Field', 'Address cannot be empty.');
-    if (!phone.trim())   return Alert.alert('Missing Field', 'Phone cannot be empty.');
+    if (!address.trim()) return Alert.alert('Required', 'Delivery address cannot be empty.');
+    if (!phone.trim())   return Alert.alert('Required', 'Phone number cannot be empty.');
 
     setLoading(true);
     try {
       await axios.put(`${BASE_URL}/deliveries/${delivery._id}`, {
-        status,
-        address: address.trim(),
-        phone:   phone.trim(),
+        status, address: address.trim(), phone: phone.trim(),
       });
-
-      Alert.alert('Updated ✅', 'Delivery updated successfully!', [
-        { text: 'OK', onPress: () => navigation.pop(2) },
+      Alert.alert('Saved', 'Delivery record updated successfully.', [
+        { text: 'Done', onPress: () => navigation.pop(2) },
       ]);
     } catch (err) {
-      Alert.alert('Error', err.response?.data?.message || 'Update failed');
+      Alert.alert('Error', err.response?.data?.message || 'Update failed. Try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const currentMeta = STATUS_META[status];
+  const currentMeta = STATUS[status];
 
   return (
     <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.surface} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
 
         {/* Header */}
         <View style={s.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-            <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
+          <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back" size={22} color={C.textDark} />
           </TouchableOpacity>
-          <View style={{ flex: 1 }}>
+          <View style={s.headerMid}>
             <Text style={s.headerTitle}>Update Delivery</Text>
-            <Text style={s.headerSub}>Order #{delivery.order_id?.slice(-8).toUpperCase()}</Text>
+            <Text style={s.headerSub}>#{delivery.order_id?.slice(-8).toUpperCase()}</Text>
           </View>
-          {/* Admin badge */}
-          <View style={s.adminBadge}>
-            <MaterialIcons name="admin-panel-settings" size={14} color="#fff" />
-            <Text style={s.adminBadgeText}>Admin</Text>
+          <View style={s.adminTag}>
+            <MaterialIcons name="shield" size={13} color="#fff" />
+            <Text style={s.adminTagText}>Admin</Text>
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-          {/* Current status preview */}
-          <View style={[s.currentStatusCard, { backgroundColor: currentMeta.bg }]}>
-            <View style={[s.statusIconCircle, { backgroundColor: currentMeta.dot }]}>
-              <MaterialIcons name={currentMeta.icon} size={22} color="#fff" />
+          {/* Current status banner */}
+          <View style={[s.currentBanner, { backgroundColor: currentMeta.bg, borderColor: currentMeta.dot }]}>
+            <View style={[s.bannerIcon, { backgroundColor: currentMeta.dot }]}>
+              <MaterialIcons name={currentMeta.icon} size={20} color="#fff" />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.currentStatusLabel, { color: currentMeta.text }]}>Current Status</Text>
-              <Text style={[s.currentStatusValue, { color: currentMeta.text }]}>{status}</Text>
+            <View style={s.bannerText}>
+              <Text style={s.bannerLabel}>Current Status</Text>
+              <Text style={[s.bannerValue, { color: currentMeta.text }]}>{status}</Text>
             </View>
           </View>
 
-          {/* Status selection */}
+          {/* Status selector */}
           <View style={s.card}>
-            <Text style={s.sectionTitle}>Select New Status</Text>
-            <View style={s.statusGrid}>
+            <Text style={s.cardLabel}>Select Status</Text>
+            <View style={s.statusList}>
               {STATUSES.map((st) => {
-                const meta     = STATUS_META[st];
+                const meta     = STATUS[st];
                 const selected = status === st;
                 return (
                   <TouchableOpacity
                     key={st}
                     style={[
-                      s.statusBtn,
-                      selected
-                        ? { backgroundColor: meta.dot, borderColor: meta.dot }
-                        : { backgroundColor: meta.bg,  borderColor: 'transparent' },
+                      s.statusRow,
+                      selected && { backgroundColor: meta.bg, borderColor: meta.dot },
                     ]}
                     onPress={() => setStatus(st)}
                     activeOpacity={0.8}
                   >
-                    <MaterialIcons
-                      name={meta.icon}
-                      size={18}
-                      color={selected ? '#fff' : meta.dot}
-                      style={{ marginRight: 6 }}
-                    />
-                    <Text style={[s.statusBtnLabel, { color: selected ? '#fff' : meta.text }]}>
+                    <View style={[s.statusRowIcon, { backgroundColor: selected ? meta.dot : C.bg }]}>
+                      <MaterialIcons name={meta.icon} size={16} color={selected ? '#fff' : C.textLight} />
+                    </View>
+                    <Text style={[s.statusRowLabel, selected && { color: meta.text, fontWeight: '800' }]}>
                       {st}
                     </Text>
                     {selected && (
-                      <MaterialIcons name="check" size={14} color="#fff" style={{ marginLeft: 'auto' }} />
+                      <MaterialIcons name="check-circle" size={18} color={meta.dot} />
                     )}
                   </TouchableOpacity>
                 );
@@ -148,34 +141,34 @@ export default function UpdateDeliveryScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* Contact details */}
+          {/* Contact card */}
           <View style={s.card}>
-            <Text style={s.sectionTitle}>Contact Details</Text>
+            <Text style={s.cardLabel}>Contact Details</Text>
 
-            <Text style={s.fieldLabel}>📍 Delivery Address</Text>
+            <Text style={s.fieldLabel}>Delivery Address</Text>
             <TextInput
               style={[s.input, s.inputMulti]}
               value={address}
               onChangeText={setAddress}
-              placeholder="Delivery address"
-              placeholderTextColor={C.textMuted}
+              placeholder="Enter delivery address"
+              placeholderTextColor={C.textLight}
               multiline
             />
 
-            <Text style={[s.fieldLabel, { marginTop: 14 }]}>📞 Phone Number</Text>
+            <Text style={[s.fieldLabel, { marginTop: 14 }]}>Phone Number</Text>
             <TextInput
               style={s.input}
               value={phone}
               onChangeText={setPhone}
-              placeholder="Phone number"
-              placeholderTextColor={C.textMuted}
+              placeholder="Enter phone number"
+              placeholderTextColor={C.textLight}
               keyboardType="phone-pad"
             />
           </View>
 
-          {/* Save button */}
+          {/* Save */}
           <TouchableOpacity
-            style={[s.saveBtn, loading && { opacity: 0.7 }]}
+            style={[s.saveBtn, loading && { opacity: 0.65 }]}
             onPress={handleUpdate}
             disabled={loading}
             activeOpacity={0.85}
@@ -183,13 +176,13 @@ export default function UpdateDeliveryScreen({ route, navigation }) {
             {loading
               ? <ActivityIndicator color="#fff" />
               : <>
-                  <MaterialIcons name="save" size={18} color="#fff" style={{ marginRight: 8 }} />
+                  <MaterialIcons name="save" size={18} color="#fff" />
                   <Text style={s.saveBtnText}>Save Changes</Text>
                 </>
             }
           </TouchableOpacity>
 
-          <View style={{ height: 20 }} />
+          <View style={{ height: 32 }} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -199,79 +192,117 @@ export default function UpdateDeliveryScreen({ route, navigation }) {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
 
-  // No access screen
-  noAccessWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-  noAccessTitle:{ fontSize: 22, fontWeight: '800', color: C.textDark, marginTop: 16, marginBottom: 8 },
-  noAccessSub:  { fontSize: 14, color: C.textMuted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
-  noAccessBtn:  { backgroundColor: C.primary, borderRadius: 14, paddingHorizontal: 28, paddingVertical: 14 },
-  noAccessBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  // Guard
+  guardWrap:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
+  guardIconBox: { width: 80, height: 80, borderRadius: 24, backgroundColor: C.border, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  guardTitle:   { fontSize: 20, fontWeight: '800', color: C.textDark, marginBottom: 8 },
+  guardSub:     { fontSize: 14, color: C.textMid, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  guardBtn:     { backgroundColor: C.primary, borderRadius: 12, paddingHorizontal: 28, paddingVertical: 13 },
+  guardBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
   // Header
   header: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
     paddingTop: Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 24) + 12,
-    paddingBottom: 16,
+    paddingBottom: 14,
     backgroundColor: C.surface,
-    borderBottomWidth: 1, borderBottomColor: C.border,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
     gap: 12,
   },
-  backBtn:     { width: 36, height: 36, justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: C.textDark },
-  headerSub:   { fontSize: 12, color: C.textMuted, marginTop: 1 },
-  adminBadge:  { flexDirection: 'row', alignItems: 'center', backgroundColor: C.primary, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, gap: 4 },
-  adminBadgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  backBtn:    { width: 36, height: 36, justifyContent: 'center', alignItems: 'center' },
+  headerMid:  { flex: 1 },
+  headerTitle:{ fontSize: 17, fontWeight: '800', color: C.textDark },
+  headerSub:  { fontSize: 12, color: C.textLight, marginTop: 1, letterSpacing: 0.3 },
+  adminTag:   { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: C.primary, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
+  adminTagText: { color: '#fff', fontSize: 11, fontWeight: '800' },
 
-  scroll: { padding: 20, paddingBottom: 40 },
+  scroll: { padding: 20 },
 
-  // Current status
-  currentStatusCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    borderRadius: 18, padding: 18,
+  // Current banner
+  currentBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderWidth: 1.5,
+    borderRadius: 14,
+    padding: 16,
     marginBottom: 16,
   },
-  statusIconCircle: {
-    width: 44, height: 44, borderRadius: 22,
-    justifyContent: 'center', alignItems: 'center',
-  },
-  currentStatusLabel: { fontSize: 11, fontWeight: '700', marginBottom: 2 },
-  currentStatusValue: { fontSize: 18, fontWeight: '900' },
+  bannerIcon:  { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  bannerText:  { flex: 1 },
+  bannerLabel: { fontSize: 11, color: C.textLight, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 3 },
+  bannerValue: { fontSize: 17, fontWeight: '800' },
 
   // Card
   card: {
-    backgroundColor: C.surface, borderRadius: 20, padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
+    backgroundColor: C.surface,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  sectionTitle: { fontSize: 15, fontWeight: '800', color: C.textDark, marginBottom: 16 },
+  cardLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: C.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 14,
+  },
 
-  // Status grid
-  statusGrid: { gap: 10 },
-  statusBtn:  {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 14, paddingVertical: 12,
-    borderRadius: 14, borderWidth: 1.5,
+  // Status list
+  statusList: { gap: 8 },
+  statusRow:  {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    backgroundColor: C.bg,
   },
-  statusBtnLabel: { fontSize: 14, fontWeight: '700' },
+  statusRowIcon: {
+    width: 32, height: 32, borderRadius: 8,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  statusRowLabel: { flex: 1, fontSize: 14, fontWeight: '600', color: C.textMid },
 
   // Inputs
-  fieldLabel: { fontSize: 13, fontWeight: '700', color: C.textDark, marginBottom: 8 },
+  fieldLabel: { fontSize: 12, fontWeight: '700', color: C.textMid, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.3 },
   input: {
-    backgroundColor: C.bg, borderRadius: 12,
-    borderWidth: 1, borderColor: C.border,
-    paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 15, color: C.textDark,
+    backgroundColor: C.bg,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: C.border,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: C.textDark,
   },
-  inputMulti: { height: 90, textAlignVertical: 'top' },
+  inputMulti: { minHeight: 88, textAlignVertical: 'top' },
 
-  // Save button
+  // Save
   saveBtn: {
-    backgroundColor: C.primary, borderRadius: 16,
-    paddingVertical: 18,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    shadowColor: C.primary, shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35, shadowRadius: 12, elevation: 6,
+    backgroundColor: C.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   saveBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
 });
