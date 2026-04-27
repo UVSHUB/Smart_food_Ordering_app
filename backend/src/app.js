@@ -9,6 +9,7 @@ const userRoutes = require('./routes/userRoutes');
 const foodRoutes = require('./routes/foodRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const deliveryRoutes = require('./routes/deliveryRoutes');
 const path = require('path');
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/foods', foodRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/deliveries', deliveryRoutes);
 
 // Make the uploads folder publicly accessible statically
 const dirname = path.resolve();

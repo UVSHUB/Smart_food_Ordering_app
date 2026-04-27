@@ -42,6 +42,12 @@ import EditProfileScreen from './src/screens/Profile/EditProfileScreen';
 import UserListScreen from './src/screens/UserAdmin/UserListScreen';
 import EditUserAdminScreen from './src/screens/UserAdmin/EditUserAdminScreen';
 
+// ── Delivery Screens ──
+import DeliveryListScreen   from './src/screens/Delivery/DeliveryListScreen';
+import DeliveryDetailScreen from './src/screens/Delivery/DeliveryDetailScreen';
+import CreateDeliveryScreen from './src/screens/Delivery/CreateDeliveryScreen';
+import UpdateDeliveryScreen from './src/screens/Delivery/UpdateDeliveryScreen';
+
 // ── Palette ──
 // ── Ultra Premium Modern Palette ──
 const C = {
@@ -150,6 +156,18 @@ function AdminUserStack() {
   );
 }
 
+// ── Delivery Stack ──
+function DeliveryStack() {
+  return (
+    <Stack.Navigator screenOptions={screenOptions} initialRouteName="DeliveryList">
+      <Stack.Screen name="DeliveryList"   component={DeliveryListScreen}   options={{ headerShown: false }} />
+      <Stack.Screen name="DeliveryDetail" component={DeliveryDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CreateDelivery" component={CreateDeliveryScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="UpdateDelivery" component={UpdateDeliveryScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  );
+}
+
 // ── Navigation Wrapper ──
 function AppNav() {
   const { isLoading, userToken, user } = useContext(AuthContext);
@@ -214,6 +232,16 @@ function AppNav() {
             options={{
               tabBarIcon: ({ focused }) => (
                 <TabIcon iconName="person" label="Profile" focused={focused} />
+              ),
+            }}
+          />
+
+          <Tab.Screen
+            name="DeliveryTab"
+            component={DeliveryStack}
+            options={{
+              tabBarIcon: ({ focused }) => (
+                <TabIcon iconName="local-shipping" label="Delivery" focused={focused} />
               ),
             }}
           />
