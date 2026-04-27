@@ -1,227 +1,219 @@
 import React, { useState, useContext } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, StatusBar, Platform, ScrollView
+  Alert, ActivityIndicator, StatusBar, Platform, ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../../services/api';
 
-const REVIEWS_URL = `${BASE_URL}/reviews`;
-
-// ── Ultra Premium Modern Palette ──────────────────────
 const C = {
-  primary: '#FA4A0C',
-  bg: '#F9F9FB',
-  surface: '#FFFFFF',
-  textDark: '#1A1A1A',
-  textMuted: '#9A9A9D',
-  star: '#FFB800',
-  border: '#E8E8E8',
-  danger: '#FF4B4B',
+  primary:  '#FA4A0C',
+  bg:       '#F4F4F6',
+  surface:  '#FFFFFF',
+  textDark: '#111827',
+  textMid:  '#6B7280',
+  textLight:'#9CA3AF',
+  star:     '#F59E0B',
+  border:   '#E5E7EB',
 };
 
-const AddReviewScreen = ({ route, navigation }) => {
-  const { foodId, foodName } = route.params;
-  const { user, userToken } = useContext(AuthContext);
+const RATING_LABELS = { 1: 'Poor', 2: 'Fair', 3: 'Good', 4: 'Very Good', 5: 'Excellent' };
 
-  const [rating, setRating] = useState(5);
+export default function AddReviewScreen({ route, navigation }) {
+  const { foodId, foodName } = route.params;
+  const { userToken } = useContext(AuthContext);
+
+  const [rating,  setRating]  = useState(0);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!comment.trim()) {
-      Alert.alert('Missing Field', 'Please provide a comment for your review.');
+    if (rating === 0) {
+      Alert.alert('Rating Required', 'Please select a star rating before submitting.');
       return;
     }
-
+    if (!comment.trim()) {
+      Alert.alert('Comment Required', 'Please write a short review comment.');
+      return;
+    }
     if (!userToken) {
-      Alert.alert('Session Expired', 'Please login again to post a review.');
+      Alert.alert('Session Expired', 'Please log in again to post a review.');
       return;
     }
 
     setLoading(true);
     try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
-      };
-
       await axios.post(
-        REVIEWS_URL,
-        {
-          food_id: foodId,
-          rating,
-          comment,
-        },
-        config
+        `${BASE_URL}/reviews`,
+        { food_id: foodId, rating, comment },
+        { headers: { Authorization: `Bearer ${userToken}` } }
       );
-
-      Alert.alert('Success 🎉', 'Your review has been posted!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      navigation.goBack();
     } catch (err) {
-      if (err.response?.status === 400 && err.response?.data?.message) {
-        Alert.alert('Oops!', err.response.data.message);
-      } else {
-        Alert.alert('Error', 'Failed to post review. Please try again.');
-        console.log(err);
-      }
+      Alert.alert(
+        'Could Not Submit',
+        err.response?.data?.message || 'Something went wrong. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const renderInteractiveStars = () => {
-    return (
-      <View style={s.starsContainer}>
-        {[1, 2, 3, 4, 5].map((i) => (
-          <TouchableOpacity key={i} onPress={() => setRating(i)} activeOpacity={0.7}>
-            <MaterialIcons
-              name={i <= rating ? 'star' : 'star-border'}
-              size={44}
-              color={i <= rating ? C.star : '#E0E0E0'}
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
-
   return (
-    <View style={s.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+    <SafeAreaView style={s.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.surface} />
 
-      <View style={s.topBar}>
+      {/* Header */}
+      <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
+          <MaterialIcons name="arrow-back" size={22} color={C.textDark} />
         </TouchableOpacity>
-        <Text style={s.topBarTitle}>Write a Review</Text>
+        <Text style={s.headerTitle}>Write a Review</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        <View style={s.infoCard}>
-          <Text style={s.reviewingTxt}>Reviewing</Text>
-          <Text style={s.foodName}>{foodName}</Text>
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+
+        {/* Food name card */}
+        <View style={s.foodCard}>
+          <View style={s.foodIcon}>
+            <MaterialIcons name="restaurant" size={22} color={C.primary} />
+          </View>
+          <View style={s.foodCardText}>
+            <Text style={s.foodCardLabel}>Reviewing</Text>
+            <Text style={s.foodCardName} numberOfLines={2}>{foodName}</Text>
+          </View>
         </View>
 
-        <View style={s.formCard}>
-          <Text style={s.label}>Tap to Rate</Text>
-          {renderInteractiveStars()}
+        {/* Star rating picker */}
+        <View style={s.card}>
+          <Text style={s.cardTitle}>Your Rating</Text>
 
-          <Text style={s.label}>Your Experience</Text>
+          <View style={s.starsRow}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <TouchableOpacity key={i} onPress={() => setRating(i)} activeOpacity={0.7}>
+                <MaterialIcons
+                  name={i <= rating ? 'star' : 'star-outline'}
+                  size={46}
+                  color={i <= rating ? C.star : C.border}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {rating > 0 && (
+            <View style={[s.ratingLabelBox, { backgroundColor: rating >= 4 ? '#F0FDF4' : rating === 3 ? '#FFFBEB' : '#FFF0F0' }]}>
+              <Text style={[s.ratingLabelText, { color: rating >= 4 ? '#15803D' : rating === 3 ? '#92400E' : '#B91C1C' }]}>
+                {RATING_LABELS[rating]}
+              </Text>
+              <View style={s.ratingDots}>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <View key={i} style={[s.dot, { backgroundColor: i <= rating ? C.star : C.border }]} />
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Comment */}
+        <View style={s.card}>
+          <Text style={s.cardTitle}>Your Experience</Text>
           <TextInput
             style={s.textArea}
             value={comment}
             onChangeText={setComment}
-            placeholder="What did you like or dislike?"
-            placeholderTextColor={C.textMuted}
+            placeholder="What did you think about the food? Was it fresh, tasty, well-presented?"
+            placeholderTextColor={C.textLight}
             multiline
             textAlignVertical="top"
+            maxLength={500}
           />
-
-          <TouchableOpacity
-            style={[s.submitBtn, loading && s.submitBtnDisabled]}
-            disabled={loading}
-            onPress={handleSubmit}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <MaterialIcons name="send" size={20} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={s.submitBtnText}>Post Review</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <Text style={s.charCount}>{comment.length}/500</Text>
         </View>
+
+        {/* Submit */}
+        <TouchableOpacity
+          style={[s.submitBtn, (loading || rating === 0) && { opacity: 0.6 }]}
+          onPress={handleSubmit}
+          disabled={loading || rating === 0}
+          activeOpacity={0.85}
+        >
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <>
+                <MaterialIcons name="send" size={18} color="#fff" />
+                <Text style={s.submitText}>Submit Review</Text>
+              </>
+          }
+        </TouchableOpacity>
+
+        <View style={{ height: 32 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
-};
+}
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: C.bg },
-  topBar: {
-    backgroundColor: C.bg,
-    paddingTop: Platform.OS === 'ios' ? 10 : (StatusBar.currentHeight || 24) + 10,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  topBarTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
+  safe: { flex: 1, backgroundColor: C.bg },
 
-  content: { padding: 20 },
-  infoCard: {
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 24) + 12,
+    paddingBottom: 14,
     backgroundColor: C.surface,
-    padding: 20,
-    borderRadius: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: C.border,
+    borderBottomWidth: 1, borderBottomColor: C.border,
   },
-  reviewingTxt: {
-    fontSize: 12,
-    color: C.textMuted,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  foodName: { fontSize: 20, fontWeight: '800', color: C.textDark },
+  backBtn:     { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: C.textDark },
 
-  formCard: {
+  scroll: { padding: 20 },
+
+  foodCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
     backgroundColor: C.surface,
-    padding: 24,
-    borderRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    elevation: 3,
+    borderRadius: 14, padding: 16, marginBottom: 14,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
   },
-  label: { fontSize: 15, fontWeight: '700', color: C.textDark, marginBottom: 12 },
+  foodIcon:     { width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFF2EE', justifyContent: 'center', alignItems: 'center' },
+  foodCardText: { flex: 1 },
+  foodCardLabel:{ fontSize: 11, fontWeight: '700', color: C.textLight, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 3 },
+  foodCardName: { fontSize: 16, fontWeight: '800', color: C.textDark, lineHeight: 22 },
 
-  starsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 28,
-    gap: 8,
+  card: {
+    backgroundColor: C.surface, borderRadius: 16, padding: 20,
+    marginBottom: 14,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
   },
+  cardTitle: { fontSize: 13, fontWeight: '800', color: C.textLight, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 18 },
+
+  starsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 14 },
+
+  ratingLabelBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
+  ratingLabelText:{ fontSize: 15, fontWeight: '800' },
+  ratingDots:     { flexDirection: 'row', gap: 5 },
+  dot:            { width: 8, height: 8, borderRadius: 4 },
 
   textArea: {
-    backgroundColor: '#F7F7F9',
-    borderRadius: 16,
-    padding: 16,
-    height: 140,
-    color: C.textDark,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: C.border,
-    marginBottom: 28,
+    backgroundColor: C.bg, borderRadius: 12,
+    borderWidth: 1.5, borderColor: C.border,
+    padding: 14, minHeight: 120,
+    fontSize: 14, color: C.textDark,
+    lineHeight: 22,
   },
+  charCount: { textAlign: 'right', fontSize: 11, color: C.textLight, marginTop: 6 },
 
   submitBtn: {
-    backgroundColor: C.primary,
-    borderRadius: 18,
-    paddingVertical: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
+    backgroundColor: C.primary, borderRadius: 14,
+    paddingVertical: 16,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    shadowColor: C.primary, shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
-  submitBtnDisabled: { opacity: 0.7 },
-  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  submitText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });
-
-export default AddReviewScreen;

@@ -34,6 +34,7 @@ const PaymentHistoryScreen = ({ navigation }) => {
       const { data } = await axios.get(`${BASE_URL}/payments/user/${user._id}`);
       setPayments(data);
     } catch (err) {
+      console.log(err);
       Alert.alert('Error', 'Could not load payment history.');
     } finally {
       setLoading(false);
@@ -81,7 +82,15 @@ const PaymentHistoryScreen = ({ navigation }) => {
           </View>
           <TouchableOpacity
             style={s.trackBtn}
-            onPress={() => navigation.navigate('DeliveryHistory')}
+            onPress={() => {
+              // Navigate to Delivery tab — works from any stack
+              const parent = navigation.getParent();
+              if (parent) {
+                parent.navigate('DeliveryTab');
+              } else {
+                navigation.navigate('DeliveryHistory');
+              }
+            }}
             activeOpacity={0.8}
           >
             <MaterialIcons name="local-shipping" size={13} color={C.primary} />
