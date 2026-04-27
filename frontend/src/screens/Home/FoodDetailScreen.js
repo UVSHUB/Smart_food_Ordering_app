@@ -12,14 +12,71 @@ import { BASE_URL, IMAGE_BASE_URL } from '../../services/api';
 
 const C = {
   primary:   '#FA4A0C',
-  bg:        '#F9F9FB',
+  bg:        '#F4F4F6',
   surface:   '#FFFFFF',
-  textDark:  '#1A1A1A',
-  textMuted: '#9A9A9D',
-  star:      '#FFB800',
-  danger:    '#FF4B4B',
-  border:    '#E8E8E8',
+  textDark:  '#111827',
+  textMuted: '#6B7280',
+  star:      '#F59E0B',
+  danger:    '#EF4444',
+  border:    '#E5E7EB',
 };
+
+// ── Rating breakdown bar chart ─────────────────────────────────────────────────
+function RatingBreakdown({ reviews }) {
+  if (!reviews.length) return null;
+  const total = reviews.length;
+  const counts = [5, 4, 3, 2, 1].map(star => ({
+    star,
+    count: reviews.filter(r => r.rating === star).length,
+  }));
+  const avg = reviews.reduce((s, r) => s + r.rating, 0) / total;
+
+  return (
+    <View style={rb.wrap}>
+      {/* Left: big number */}
+      <View style={rb.scoreWrap}>
+        <Text style={rb.score}>{avg.toFixed(1)}</Text>
+        <View style={rb.starsSmall}>
+          {[1,2,3,4,5].map(i => (
+            <MaterialIcons key={i} name={i <= Math.round(avg) ? 'star' : 'star-border'} size={12} color={C.star} />
+          ))}
+        </View>
+        <Text style={rb.totalText}>{total} {total === 1 ? 'review' : 'reviews'}</Text>
+      </View>
+
+      {/* Right: bars */}
+      <View style={rb.bars}>
+        {counts.map(({ star, count }) => {
+          const pct = total > 0 ? (count / total) * 100 : 0;
+          return (
+            <View key={star} style={rb.barRow}>
+              <Text style={rb.barLabel}>{star}</Text>
+              <MaterialIcons name="star" size={11} color={C.star} style={{ marginRight: 5 }} />
+              <View style={rb.barBg}>
+                <View style={[rb.barFill, { width: `${pct}%` }]} />
+              </View>
+              <Text style={rb.barCount}>{count}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const rb = StyleSheet.create({
+  wrap:      { flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 18 },
+  scoreWrap: { alignItems: 'center', width: 72 },
+  score:     { fontSize: 40, fontWeight: '900', color: C.textDark, lineHeight: 44 },
+  starsSmall:{ flexDirection: 'row', marginVertical: 4 },
+  totalText: { fontSize: 11, color: C.textMuted, textAlign: 'center', lineHeight: 14 },
+  bars:      { flex: 1, gap: 5 },
+  barRow:    { flexDirection: 'row', alignItems: 'center' },
+  barLabel:  { fontSize: 11, fontWeight: '700', color: C.textMuted, width: 10, textAlign: 'right', marginRight: 3 },
+  barBg:     { flex: 1, height: 6, backgroundColor: C.border, borderRadius: 3, overflow: 'hidden', marginRight: 6 },
+  barFill:   { height: '100%', backgroundColor: C.star, borderRadius: 3 },
+  barCount:  { fontSize: 11, color: C.textMuted, width: 16, textAlign: 'right' },
+});
 
 const FoodDetailScreen = ({ route, navigation }) => {
   const { food } = route.params;
@@ -81,7 +138,7 @@ const FoodDetailScreen = ({ route, navigation }) => {
 
   const handleAddToCart = () => {
     for (let i = 0; i < qty; i++) addToCart(food);
-    Alert.alert('Added to Cart! 🛒', `${qty}x ${food.name} added to your cart.`, [
+    Alert.alert('Added to Cart', `${qty}x ${food.name} added to your cart.`, [
       { text: 'Continue Shopping', style: 'cancel' },
       { text: 'View Cart', onPress: () => navigation.navigate('Cart') },
     ]);
@@ -91,6 +148,14 @@ const FoodDetailScreen = ({ route, navigation }) => {
     for (let i = 0; i < qty; i++) addToCart(food);
     navigation.navigate('Cart');
   };
+
+  const [sortBy, setSortBy] = useState('newest'); // newest | highest | lowest
+
+  const sortedReviews = [...reviews].sort((a, b) => {
+    if (sortBy === 'highest') return b.rating - a.rating;
+    if (sortBy === 'lowest')  return a.rating - b.rating;
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
 
   const hasReviewed = user ? reviews.some((r) => r.user_id && r.user_id._id === user._id) : false;
 
@@ -106,32 +171,56 @@ const FoodDetailScreen = ({ route, navigation }) => {
     ));
 
   const renderReview = ({ item }) => {
-    const isOwner = user && user._id === item.user_id?._id;
-    const canDelete = isOwner || (user && user.isAdmin);
+    const isOwner  = user && user._id === item.user_id?._id;
+    const canDelete= isOwner || (user && user.isAdmin);
+    const initial  = (item.user_id?.name || 'A')[0].toUpperCase();
+    const dateStr  = new Date(item.createdAt).toLocaleDateString('en-US', {
+      day: 'numeric', month: 'short', year: 'numeric',
+    });
+    // Star colour per rating
+    const starColor = item.rating >= 4 ? '#15803D' : item.rating === 3 ? '#92400E' : '#B91C1C';
+    const starBg    = item.rating >= 4 ? '#F0FDF4' : item.rating === 3 ? '#FFFBEB' : '#FFF0F0';
 
     return (
       <View style={s.reviewCard}>
-        <View style={s.reviewHeader}>
+        {/* Review header */}
+        <View style={s.reviewHead}>
           <View style={s.reviewAvatar}>
-            <Text style={s.reviewAvatarText}>{(item.user_id?.name || 'A')[0].toUpperCase()}</Text>
+            <Text style={s.reviewAvatarText}>{initial}</Text>
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={s.reviewMeta}>
             <Text style={s.reviewerName}>{item.user_id?.name || 'Anonymous'}</Text>
-            <View style={{ flexDirection: 'row' }}>{renderStars(item.rating)}</View>
+            <Text style={s.reviewDate}>{dateStr}</Text>
           </View>
-          <Text style={s.reviewDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+          {/* Star rating badge */}
+          <View style={[s.ratingBadge, { backgroundColor: starBg }]}>
+            <MaterialIcons name="star" size={13} color={starColor} />
+            <Text style={[s.ratingBadgeText, { color: starColor }]}>{item.rating}.0</Text>
+          </View>
         </View>
+
+        {/* Comment */}
         <Text style={s.reviewComment}>{item.comment}</Text>
+
+        {/* Actions */}
         {(isOwner || canDelete) && (
           <View style={s.reviewActions}>
             {isOwner && (
-              <TouchableOpacity onPress={() => navigation.navigate('EditReview', { review: item, foodName: food.name })}>
-                <Text style={s.editAction}>Edit</Text>
+              <TouchableOpacity
+                style={s.editBtn}
+                onPress={() => navigation.navigate('EditReview', { review: item, foodName: food.name })}
+              >
+                <MaterialIcons name="edit" size={13} color={C.primary} />
+                <Text style={s.editBtnText}>Edit</Text>
               </TouchableOpacity>
             )}
             {canDelete && (
-              <TouchableOpacity onPress={() => handleDeleteReview(item._id)}>
-                <Text style={s.deleteAction}>Delete</Text>
+              <TouchableOpacity
+                style={s.deleteBtn}
+                onPress={() => handleDeleteReview(item._id)}
+              >
+                <MaterialIcons name="delete-outline" size={13} color={C.danger} />
+                <Text style={s.deleteBtnText}>Delete</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -220,33 +309,61 @@ const FoodDetailScreen = ({ route, navigation }) => {
               </View>
             </View>
 
-            {/* Reviews Header */}
-            <View style={s.reviewsHeader}>
-              <Text style={s.reviewsTitle}>Reviews</Text>
-              {!userToken ? (
-                <Text style={s.reviewPrompt}>Log in to review</Text>
-              ) : hasReviewed ? (
-                <Text style={s.reviewPrompt}>You've reviewed this</Text>
-              ) : (
-                <TouchableOpacity
-                  style={s.addReviewBtn}
-                  onPress={() => navigation.navigate('AddReview', { foodId: food._id, foodName: food.name })}
-                >
-                  <Text style={s.addReviewBtnText}>+ Write a Review</Text>
-                </TouchableOpacity>
+            {/* Reviews section */}
+            <View style={s.reviewsSection}>
+              {/* Header row */}
+              <View style={s.reviewsHeader}>
+                <Text style={s.reviewsTitle}>Reviews</Text>
+                {!userToken ? (
+                  <Text style={s.reviewPrompt}>Log in to review</Text>
+                ) : hasReviewed ? (
+                  <Text style={s.reviewPrompt}>You've reviewed this</Text>
+                ) : (
+                  <TouchableOpacity
+                    style={s.addReviewBtn}
+                    onPress={() => navigation.navigate('AddReview', { foodId: food._id, foodName: food.name })}
+                  >
+                    <MaterialIcons name="add" size={14} color={C.primary} />
+                    <Text style={s.addReviewBtnText}>Write a Review</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Rating breakdown */}
+              {!loadingReviews && reviews.length > 0 && (
+                <RatingBreakdown reviews={reviews} />
+              )}
+
+              {/* Sort controls */}
+              {reviews.length > 1 && (
+                <View style={s.sortRow}>
+                  {[['newest','New'],['highest','Top'],['lowest','Low']].map(([key, label]) => (
+                    <TouchableOpacity
+                      key={key}
+                      style={[s.sortChip, sortBy === key && s.sortChipActive]}
+                      onPress={() => setSortBy(key)}
+                    >
+                      <Text style={[s.sortChipText, sortBy === key && s.sortChipTextActive]}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              {loadingReviews && <ActivityIndicator color={C.primary} style={{ marginVertical: 20 }} />}
+              {!loadingReviews && reviews.length === 0 && (
+                <View style={s.noReviews}>
+                  <View style={s.noReviewsIcon}>
+                    <MaterialIcons name="rate-review" size={28} color={C.border} />
+                  </View>
+                  <Text style={s.noReviewsTitle}>No reviews yet</Text>
+                  <Text style={s.noReviewsSub}>Be the first to share your experience!</Text>
+                </View>
               )}
             </View>
-
-            {loadingReviews && <ActivityIndicator color={C.primary} style={{ marginTop: 20 }} />}
-            {!loadingReviews && reviews.length === 0 && (
-              <View style={s.noReviews}>
-                <MaterialIcons name="rate-review" size={36} color={C.border} />
-                <Text style={s.noReviewsText}>No reviews yet. Be the first!</Text>
-              </View>
-            )}
           </>
         }
         renderItem={renderReview}
+        data={sortedReviews}
       />
 
       {/* Sticky Bottom CTA */}
@@ -345,31 +462,44 @@ const s = StyleSheet.create({
   subtotalValue: { fontSize: 18, fontWeight: '900', color: C.primary },
 
   // Reviews
-  reviewsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },
+  reviewsSection: { paddingHorizontal: 16, marginBottom: 16 },
+  reviewsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   reviewsTitle: { fontSize: 18, fontWeight: '800', color: C.textDark },
-  addReviewBtn: { backgroundColor: '#FFF0ED', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
+  addReviewBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#FFF0ED', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   addReviewBtnText: { color: C.primary, fontSize: 13, fontWeight: '700' },
   reviewPrompt: { color: C.textMuted, fontSize: 13 },
-  noReviews: { alignItems: 'center', padding: 30 },
-  noReviewsText: { color: C.textMuted, marginTop: 8, fontSize: 14 },
+
+  sortRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+  sortChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: C.border },
+  sortChipActive: { backgroundColor: C.primary },
+  sortChipText: { fontSize: 12, fontWeight: '700', color: C.textMuted },
+  sortChipTextActive: { color: '#fff' },
+
+  noReviews: { alignItems: 'center', paddingVertical: 32 },
+  noReviewsIcon: { width: 64, height: 64, borderRadius: 18, backgroundColor: C.border, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  noReviewsTitle: { fontSize: 16, fontWeight: '800', color: C.textDark, marginBottom: 4 },
+  noReviewsSub: { fontSize: 13, color: C.textMuted, textAlign: 'center' },
 
   reviewCard: {
-    backgroundColor: C.surface, marginHorizontal: 16, marginBottom: 12,
-    borderRadius: 18, padding: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 1,
+    backgroundColor: C.surface,
+    marginBottom: 10,
+    borderRadius: 16, padding: 16,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
   },
-  reviewHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  reviewAvatar: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: '#FFF0ED', justifyContent: 'center', alignItems: 'center', marginRight: 12,
-  },
-  reviewAvatarText: { fontSize: 16, fontWeight: '800', color: C.primary },
-  reviewerName: { fontSize: 14, fontWeight: '700', color: C.textDark, marginBottom: 4 },
-  reviewDate: { fontSize: 12, color: C.textMuted },
-  reviewComment: { fontSize: 14, color: C.textMuted, lineHeight: 20 },
-  reviewActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.border },
-  editAction: { color: C.primary, fontWeight: '600', marginRight: 16, fontSize: 13 },
-  deleteAction: { color: C.danger, fontWeight: '600', fontSize: 13 },
+  reviewHead:     { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  reviewAvatar:   { width: 38, height: 38, borderRadius: 19, backgroundColor: '#FFF0ED', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  reviewAvatarText:{ fontSize: 16, fontWeight: '800', color: C.primary },
+  reviewMeta:     { flex: 1 },
+  reviewerName:   { fontSize: 14, fontWeight: '700', color: C.textDark, marginBottom: 2 },
+  reviewDate:     { fontSize: 11, color: C.textMuted },
+  ratingBadge:    { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 8 },
+  ratingBadgeText:{ fontSize: 13, fontWeight: '800' },
+  reviewComment:  { fontSize: 14, color: C.textMuted, lineHeight: 22 },
+  reviewActions:  { flexDirection: 'row', gap: 10, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.border },
+  editBtn:        { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#FFF0ED' },
+  editBtnText:    { fontSize: 12, fontWeight: '700', color: C.primary },
+  deleteBtn:      { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#FFF0F0' },
+  deleteBtnText:  { fontSize: 12, fontWeight: '700', color: C.danger },
 
   // Footer
   footer: {
@@ -383,8 +513,7 @@ const s = StyleSheet.create({
   },
   addToCartBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: C.primary, borderRadius: 16, paddingVertical: 16,
-    gap: 8,
+    borderWidth: 2, borderColor: C.primary, borderRadius: 16, paddingVertical: 16, gap: 8,
   },
   addToCartText: { color: C.primary, fontSize: 15, fontWeight: '800' },
   buyNowBtn: {
