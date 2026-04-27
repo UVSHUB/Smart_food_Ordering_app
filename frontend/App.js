@@ -8,7 +8,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 // ── Auth Context ──
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
-import { CartProvider } from './src/context/CartContext';
+import CartContext, { CartProvider } from './src/context/CartContext';
 import { WishlistProvider } from './src/context/WishlistContext';
 
 // ── Auth Screens ──
