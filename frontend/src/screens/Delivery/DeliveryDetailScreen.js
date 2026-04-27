@@ -6,74 +6,72 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../../context/AuthContext';
 
-// ── Design tokens ──────────────────────────────────────────────────────────────
-const C = {
-  primary:   '#FA4A0C',
-  bg:        '#F9F9FB',
-  surface:   '#FFFFFF',
-  textDark:  '#1A1A1A',
-  textMuted: '#9A9A9D',
-  border:    '#F0F0F0',
-};
-
-const STATUS_META = {
-  Pending:            { bg: '#FFF3E0', text: '#E65100', dot: '#FF9800',  icon: 'hourglass-empty',  desc: 'Your order has been received.'         },
-  Preparing:          { bg: '#E3F2FD', text: '#0D47A1', dot: '#2196F3',  icon: 'restaurant',       desc: 'Our kitchen is preparing your food.'   },
-  'Out for Delivery': { bg: '#F3E5F5', text: '#6A1B9A', dot: '#9C27B0',  icon: 'delivery-dining',  desc: 'Your order is on the way!'             },
-  Delivered:          { bg: '#E8F5E9', text: '#1B5E20', dot: '#4CAF50',  icon: 'check-circle',     desc: 'Delivered! Enjoy your meal. 🎉'        },
+const STATUS = {
+  Pending:            { bg: '#FFF8F0', text: '#C2410C', dot: '#F97316', icon: 'schedule',        label: 'Order Received'       },
+  Preparing:          { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6', icon: 'restaurant',      label: 'Being Prepared'       },
+  'Out for Delivery': { bg: '#FAF5FF', text: '#7E22CE', dot: '#A855F7', icon: 'delivery-dining', label: 'Out for Delivery'     },
+  Delivered:          { bg: '#F0FDF4', text: '#15803D', dot: '#22C55E', icon: 'check-circle',    label: 'Delivered'            },
 };
 
 const STEPS = ['Pending', 'Preparing', 'Out for Delivery', 'Delivered'];
 
-// ── Animated step-progress tracker ────────────────────────────────────────────
+const C = {
+  primary:   '#FA4A0C',
+  bg:        '#F4F4F6',
+  surface:   '#FFFFFF',
+  textDark:  '#111827',
+  textMid:   '#6B7280',
+  textLight: '#9CA3AF',
+  border:    '#E5E7EB',
+};
+
+// ── Vertical progress tracker ─────────────────────────────────────────────────
 function ProgressTracker({ currentStatus }) {
   const currentIndex = STEPS.indexOf(currentStatus);
 
   return (
-    <View style={pt.container}>
+    <View style={pt.wrap}>
       {STEPS.map((step, idx) => {
-        const done    = idx <= currentIndex;
-        const active  = idx === currentIndex;
-        const meta    = STATUS_META[step];
+        const done   = idx <= currentIndex;
+        const active = idx === currentIndex;
+        const meta   = STATUS[step];
 
         return (
-          <View key={step} style={pt.stepRow}>
-            {/* Line above (except first) */}
-            {idx > 0 && (
-              <View style={[pt.vertLine, done && { backgroundColor: meta.dot }]} />
-            )}
-
-            <View style={pt.stepContent}>
-              {/* Icon circle */}
+          <View key={step} style={pt.row}>
+            {/* Icon column */}
+            <View style={pt.iconCol}>
               <View style={[
-                pt.iconCircle,
+                pt.circle,
                 done  && { backgroundColor: meta.dot, borderColor: meta.dot },
-                active && { shadowColor: meta.dot, shadowOpacity: 0.5, shadowRadius: 8, elevation: 6 },
+                !done && { backgroundColor: C.bg, borderColor: C.border },
               ]}>
                 <MaterialIcons
                   name={meta.icon}
-                  size={18}
-                  color={done ? '#fff' : C.textMuted}
+                  size={16}
+                  color={done ? '#fff' : C.textLight}
                 />
               </View>
-
-              {/* Label */}
-              <View style={pt.labelWrap}>
-                <Text style={[pt.stepLabel, done && { color: C.textDark, fontWeight: '800' }]}>
-                  {step}
-                </Text>
-                {active && (
-                  <Text style={[pt.stepDesc, { color: meta.text }]}>{meta.desc}</Text>
-                )}
-              </View>
-
-              {/* Active pulse ring */}
-              {active && (
-                <View style={[pt.activeBadge, { backgroundColor: meta.bg }]}>
-                  <Text style={[pt.activeBadgeText, { color: meta.text }]}>Now</Text>
-                </View>
+              {idx < STEPS.length - 1 && (
+                <View style={[pt.line, done && idx < currentIndex && { backgroundColor: meta.dot }]} />
               )}
             </View>
+
+            {/* Text column */}
+            <View style={pt.textCol}>
+              <Text style={[pt.stepName, done && { color: C.textDark, fontWeight: '700' }]}>
+                {step}
+              </Text>
+              {active && (
+                <Text style={[pt.stepDesc, { color: meta.text }]}>{meta.label}</Text>
+              )}
+            </View>
+
+            {/* Active badge */}
+            {active && (
+              <View style={[pt.badge, { backgroundColor: meta.bg }]}>
+                <Text style={[pt.badgeText, { color: meta.text }]}>Current</Text>
+              </View>
+            )}
           </View>
         );
       })}
@@ -81,19 +79,34 @@ function ProgressTracker({ currentStatus }) {
   );
 }
 
+// ── Info row ──────────────────────────────────────────────────────────────────
+function InfoRow({ icon, label, value }) {
+  return (
+    <View style={s.infoRow}>
+      <View style={s.infoIconBox}>
+        <MaterialIcons name={icon} size={16} color={C.primary} />
+      </View>
+      <View style={s.infoText}>
+        <Text style={s.infoLabel}>{label}</Text>
+        <Text style={s.infoValue}>{value || '—'}</Text>
+      </View>
+    </View>
+  );
+}
+
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function DeliveryDetailScreen({ route, navigation }) {
-  const { user } = useContext(AuthContext);
+  const { user }     = useContext(AuthContext);
   const { delivery } = route.params;
 
-  const meta   = STATUS_META[delivery.status] || STATUS_META.Pending;
+  const meta   = STATUS[delivery.status] || STATUS.Pending;
   const fadeIn = useRef(new Animated.Value(0)).current;
-  const slideY = useRef(new Animated.Value(30)).current;
+  const slideY = useRef(new Animated.Value(24)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.timing(slideY, { toValue: 0,  duration: 500, useNativeDriver: true }),
+      Animated.timing(fadeIn, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.timing(slideY, { toValue: 0, duration: 400, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -108,20 +121,21 @@ export default function DeliveryDetailScreen({ route, navigation }) {
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={meta.dot} />
 
-      {/* ── Coloured header banner ── */}
-      <View style={[s.heroBanner, { backgroundColor: meta.dot }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
+      {/* ── Coloured header ── */}
+      <View style={[s.header, { backgroundColor: meta.dot }]}>
+        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
 
-        <View style={s.heroCenter}>
-          <View style={s.heroIconRing}>
-            <MaterialIcons name={meta.icon} size={36} color={meta.dot} />
+        <View style={s.headerCenter}>
+          <View style={s.headerIconRing}>
+            <MaterialIcons name={meta.icon} size={28} color={meta.dot} />
           </View>
-          <Text style={s.heroStatus}>{delivery.status}</Text>
-          <Text style={s.heroDesc}>{meta.desc}</Text>
+          <Text style={s.headerStatus}>{delivery.status}</Text>
+          <Text style={s.headerDesc}>{meta.label}</Text>
         </View>
 
+        {/* spacer to balance back button */}
         <View style={{ width: 40 }} />
       </View>
 
@@ -130,159 +144,165 @@ export default function DeliveryDetailScreen({ route, navigation }) {
         contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Order ID chip ── */}
-        <View style={s.orderChip}>
-          <MaterialIcons name="receipt" size={16} color={C.primary} />
-          <Text style={s.orderChipText}>Order #{delivery.order_id?.slice(-8).toUpperCase()}</Text>
-          <View style={[s.statusDot, { backgroundColor: meta.dot }]} />
+        {/* Order ID row */}
+        <View style={s.orderIdRow}>
+          <MaterialIcons name="receipt-long" size={16} color={C.textMid} />
+          <Text style={s.orderIdText}>
+            Order  <Text style={s.orderIdVal}>#{delivery.order_id?.slice(-8).toUpperCase()}</Text>
+          </Text>
         </View>
 
-        {/* ── Progress tracker ── */}
+        {/* Progress card */}
         <View style={s.card}>
-          <Text style={s.cardTitle}>📍 Delivery Progress</Text>
+          <Text style={s.cardTitle}>Delivery Progress</Text>
           <ProgressTracker currentStatus={delivery.status} />
         </View>
 
-        {/* ── Delivery details ── */}
+        {/* Details card */}
         <View style={s.card}>
-          <Text style={s.cardTitle}>📦 Delivery Details</Text>
-
+          <Text style={s.cardTitle}>Delivery Details</Text>
           <InfoRow icon="location-on"  label="Delivery Address" value={delivery.address} />
-          <InfoRow icon="phone"         label="Phone Number"     value={delivery.phone} />
-          <InfoRow icon="event"         label="Order Date"       value={date} />
-          <InfoRow icon="access-time"   label="Order Time"       value={time} />
+          <InfoRow icon="phone"         label="Phone Number"     value={delivery.phone}   />
+          <InfoRow icon="event"         label="Date"             value={date}             />
+          <InfoRow icon="access-time"   label="Time"             value={time}             />
         </View>
 
-        {/* ── Admin: Update button — users see read-only view only ── */}
+        {/* CTA */}
         {user?.isAdmin ? (
           <TouchableOpacity
-            style={[s.actionBtn, { backgroundColor: meta.dot }]}
+            style={[s.updateBtn, { backgroundColor: meta.dot }]}
             activeOpacity={0.85}
             onPress={() => navigation.navigate('UpdateDelivery', { delivery })}
           >
-            <MaterialIcons name="edit" size={18} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={s.actionBtnText}>Update Delivery Status</Text>
+            <MaterialIcons name="edit" size={18} color="#fff" />
+            <Text style={s.updateBtnText}>Update Status</Text>
           </TouchableOpacity>
         ) : (
-          <View style={[s.infoNote, { backgroundColor: meta.bg, borderLeftColor: meta.dot }]}>
-            <MaterialIcons name="info-outline" size={18} color={meta.dot} style={{ marginRight: 10 }} />
-            <Text style={[s.infoNoteText, { color: meta.text }]}>
+          <View style={[s.statusNote, { backgroundColor: meta.bg, borderLeftColor: meta.dot }]}>
+            <MaterialIcons name="info-outline" size={16} color={meta.dot} style={{ marginTop: 1 }} />
+            <Text style={[s.statusNoteText, { color: meta.text }]}>
               {delivery.status === 'Delivered'
-                ? 'Your order has been delivered. Thank you for ordering!'
-                : 'Your order is being processed. You will be notified when it moves to the next stage.'}
+                ? 'Your order has been delivered successfully. Thank you!'
+                : 'Your order is being processed. You will see live updates here.'}
             </Text>
           </View>
         )}
 
-        <View style={{ height: 20 }} />
+        <View style={{ height: 24 }} />
       </Animated.ScrollView>
     </SafeAreaView>
   );
 }
 
-// ── Helper ────────────────────────────────────────────────────────────────────
-function InfoRow({ icon, label, value }) {
-  return (
-    <View style={s.infoRow}>
-      <View style={s.infoIconBox}>
-        <MaterialIcons name={icon} size={18} color={C.primary} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={s.infoLabel}>{label}</Text>
-        <Text style={s.infoValue}>{value || '—'}</Text>
-      </View>
-    </View>
-  );
-}
-
 // ── Styles ────────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
+  safe:   { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: 20 },
 
-  heroBanner: {
+  // Header
+  header: {
     paddingTop: Platform.OS === 'ios' ? 10 : (StatusBar.currentHeight || 24) + 10,
-    paddingBottom: 32,
-    paddingHorizontal: 20,
+    paddingBottom: 28,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
-  backBtn:     { width: 40, paddingTop: 4 },
-  heroCenter:  { flex: 1, alignItems: 'center' },
-  heroIconRing:{
-    width: 72, height: 72, borderRadius: 36,
+  backBtn:       { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-start', marginTop: 2 },
+  headerCenter:  { flex: 1, alignItems: 'center' },
+  headerIconRing:{
+    width: 64, height: 64, borderRadius: 32,
     backgroundColor: '#fff',
     justifyContent: 'center', alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6,
+    marginBottom: 10,
+    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, elevation: 5,
   },
-  heroStatus: { fontSize: 20, fontWeight: '900', color: '#fff', marginBottom: 4 },
-  heroDesc:   { fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'center', lineHeight: 18 },
+  headerStatus:  { fontSize: 18, fontWeight: '800', color: '#fff', marginBottom: 3 },
+  headerDesc:    { fontSize: 12, color: 'rgba(255,255,255,0.8)', textAlign: 'center' },
 
-  orderChip: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: C.surface,
-    borderRadius: 30,
-    paddingHorizontal: 16, paddingVertical: 10,
-    marginBottom: 16,
-    alignSelf: 'flex-start',
-    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 3,
+  // Order ID
+  orderIdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
+    backgroundColor: C.surface,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 14,
+    alignSelf: 'flex-start',
+    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
   },
-  orderChipText: { fontSize: 14, fontWeight: '800', color: C.textDark },
-  statusDot:     { width: 8, height: 8, borderRadius: 4 },
+  orderIdText: { fontSize: 13, color: C.textMid, fontWeight: '500' },
+  orderIdVal:  { fontWeight: '800', color: C.textDark, letterSpacing: 0.4 },
 
+  // Cards
   card: {
     backgroundColor: C.surface,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  cardTitle: { fontSize: 15, fontWeight: '800', color: C.textDark, marginBottom: 18 },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: C.textDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 18,
+  },
 
-  infoRow:    { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 },
-  infoIconBox:{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#FFF2EE', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  infoLabel:  { fontSize: 11, color: C.textMuted, fontWeight: '600', marginBottom: 3 },
+  // Info rows
+  infoRow:    { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
+  infoIconBox:{ width: 34, height: 34, borderRadius: 10, backgroundColor: '#FFF2EE', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  infoText:   { flex: 1, justifyContent: 'center' },
+  infoLabel:  { fontSize: 11, color: C.textLight, fontWeight: '600', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.3 },
   infoValue:  { fontSize: 14, color: C.textDark, fontWeight: '600', lineHeight: 20 },
 
-  actionBtn: {
-    borderRadius: 16, paddingVertical: 16,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
+  // Update button
+  updateBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    borderRadius: 14, paddingVertical: 16,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
-  actionBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  updateBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
 
-  infoNote: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    borderRadius: 14, padding: 14,
+  // Status note
+  statusNote: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 10,
+    borderRadius: 12, padding: 14,
     borderLeftWidth: 4,
   },
-  infoNoteText: { flex: 1, fontSize: 13, fontWeight: '600', lineHeight: 20 },
+  statusNoteText: { flex: 1, fontSize: 13, fontWeight: '600', lineHeight: 20 },
 });
 
 // ── Progress tracker styles ────────────────────────────────────────────────────
 const pt = StyleSheet.create({
-  container: { paddingLeft: 8 },
+  wrap: { paddingLeft: 4 },
+  row:  { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 0 },
 
-  stepRow:     { alignItems: 'flex-start', marginBottom: 4 },
-  vertLine:    { width: 2, height: 20, backgroundColor: C.border, marginLeft: 18, marginBottom: 4 },
-  stepContent: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-
-  iconCircle: {
-    width: 38, height: 38, borderRadius: 19,
-    borderWidth: 2, borderColor: C.border,
-    backgroundColor: C.bg,
+  iconCol: { width: 36, alignItems: 'center', marginRight: 14 },
+  circle:  {
+    width: 34, height: 34, borderRadius: 17,
+    borderWidth: 2,
     justifyContent: 'center', alignItems: 'center',
-    marginRight: 14,
+  },
+  line: {
+    width: 2, flex: 1,
+    backgroundColor: C.border,
+    minHeight: 28,
+    marginVertical: 4,
   },
 
-  labelWrap:  { flex: 1 },
-  stepLabel:  { fontSize: 14, fontWeight: '600', color: C.textMuted },
-  stepDesc:   { fontSize: 12, fontWeight: '600', marginTop: 2, lineHeight: 16 },
+  textCol:   { flex: 1, paddingTop: 6, paddingBottom: 24 },
+  stepName:  { fontSize: 14, fontWeight: '500', color: C.textLight },
+  stepDesc:  { fontSize: 12, fontWeight: '600', marginTop: 3, lineHeight: 17 },
 
-  activeBadge:     { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  activeBadgeText: { fontSize: 11, fontWeight: '800' },
+  badge:     { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, alignSelf: 'flex-start', marginTop: 6 },
+  badgeText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 },
 });

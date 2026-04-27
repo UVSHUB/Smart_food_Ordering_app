@@ -1,41 +1,37 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  Alert, ActivityIndicator, RefreshControl, SafeAreaView, StatusBar,
+  Alert, ActivityIndicator, RefreshControl, SafeAreaView,
+  StatusBar, Platform,
 } from 'react-native';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../../services/api';
 import { AuthContext } from '../../context/AuthContext';
 
-const STATUS_COLORS = {
-  Pending:            { bg: '#FFF3E0', text: '#E65100', dot: '#FF9800'  },
-  Preparing:          { bg: '#E3F2FD', text: '#0D47A1', dot: '#2196F3'  },
-  'Out for Delivery': { bg: '#F3E5F5', text: '#6A1B9A', dot: '#9C27B0'  },
-  Delivered:          { bg: '#E8F5E9', text: '#1B5E20', dot: '#4CAF50'  },
-};
-
-const STATUS_ICONS = {
-  Pending:            'hourglass-empty',
-  Preparing:          'restaurant',
-  'Out for Delivery': 'delivery-dining',
-  Delivered:          'check-circle',
+const STATUS = {
+  Pending:            { bg: '#FFF8F0', text: '#C2410C', dot: '#F97316', icon: 'schedule'         },
+  Preparing:          { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6', icon: 'restaurant'       },
+  'Out for Delivery': { bg: '#FAF5FF', text: '#7E22CE', dot: '#A855F7', icon: 'delivery-dining'  },
+  Delivered:          { bg: '#F0FDF4', text: '#15803D', dot: '#22C55E', icon: 'check-circle'     },
 };
 
 const C = {
   primary:   '#FA4A0C',
-  bg:        '#F9F9FB',
+  bg:        '#F4F4F6',
   surface:   '#FFFFFF',
-  textDark:  '#1A1A1A',
-  textMuted: '#9A9A9D',
-  border:    '#E8E8E8',
+  textDark:  '#111827',
+  textMid:   '#6B7280',
+  textLight: '#9CA3AF',
+  border:    '#E5E7EB',
+  shadow:    '#000',
 };
 
 export default function DeliveryListScreen({ navigation }) {
   const { user } = useContext(AuthContext);
-  const [deliveries, setDeliveries]   = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [refreshing, setRefreshing]   = useState(false);
+  const [deliveries, setDeliveries] = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchDeliveries = useCallback(async () => {
     try {
@@ -44,8 +40,8 @@ export default function DeliveryListScreen({ navigation }) {
         : `${BASE_URL}/deliveries/user/${user?._id}`;
       const res = await axios.get(url);
       setDeliveries(res.data.data || []);
-    } catch (err) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to load deliveries');
+    } catch {
+      Alert.alert('Error', 'Could not load deliveries. Check your connection.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -59,85 +55,111 @@ export default function DeliveryListScreen({ navigation }) {
   }, [navigation, fetchDeliveries]);
 
   const handleDelete = (id) => {
-    Alert.alert('Delete Delivery', 'Are you sure you want to delete this record?', [
+    Alert.alert('Delete Delivery', 'This action cannot be undone. Continue?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
           try {
             await axios.delete(`${BASE_URL}/deliveries/${id}`);
-            setDeliveries((prev) => prev.filter((d) => d._id !== id));
-          } catch (err) {
-            Alert.alert('Error', err.response?.data?.message || 'Delete failed');
+            setDeliveries(prev => prev.filter(d => d._id !== id));
+          } catch {
+            Alert.alert('Error', 'Failed to delete delivery.');
           }
         },
       },
     ]);
   };
 
+  // ── Stat row (admin only) ──────────────────────────────────────────────────
+  const StatRow = () => {
+    if (!user?.isAdmin || deliveries.length === 0) return null;
+    return (
+      <View style={s.statStrip}>
+        {Object.entries(STATUS).map(([label, meta]) => (
+          <View key={label} style={s.statItem}>
+            <Text style={[s.statCount, { color: meta.dot }]}>
+              {deliveries.filter(d => d.status === label).length}
+            </Text>
+            <Text style={s.statLabel} numberOfLines={1}>
+              {label === 'Out for Delivery' ? 'On Way' : label}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // ── Card ──────────────────────────────────────────────────────────────────
   const renderItem = ({ item }) => {
-    const colors = STATUS_COLORS[item.status] || STATUS_COLORS.Pending;
-    const icon   = STATUS_ICONS[item.status]  || 'local-shipping';
-    const date   = new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const meta = STATUS[item.status] || STATUS.Pending;
+    const date = new Date(item.createdAt).toLocaleDateString('en-US', {
+      day: 'numeric', month: 'short', year: 'numeric',
+    });
 
     return (
       <TouchableOpacity
         style={s.card}
-        activeOpacity={0.85}
+        activeOpacity={0.92}
         onPress={() => navigation.navigate('DeliveryDetail', { delivery: item })}
       >
-        {/* Icon + Status */}
-        <View style={s.cardLeft}>
-          <View style={[s.iconWrap, { backgroundColor: colors.bg }]}>
-            <MaterialIcons name={icon} size={26} color={colors.dot} />
-          </View>
-        </View>
+        {/* Left accent bar */}
+        <View style={[s.cardAccent, { backgroundColor: meta.dot }]} />
 
-        {/* Main content */}
-        <View style={s.cardBody}>
-          <View style={s.cardTopRow}>
-            <Text style={s.orderId} numberOfLines={1}>Order #{item.order_id?.slice(-8).toUpperCase()}</Text>
-            <View style={[s.badge, { backgroundColor: colors.bg }]}>
-              <View style={[s.dot, { backgroundColor: colors.dot }]} />
-              <Text style={[s.badgeText, { color: colors.text }]}>{item.status}</Text>
+        <View style={s.cardInner}>
+          {/* Top row */}
+          <View style={s.cardHead}>
+            <View style={s.cardHeadLeft}>
+              <Text style={s.cardOrderId}>
+                #{item.order_id?.slice(-8).toUpperCase() || 'N/A'}
+              </Text>
+              <Text style={s.cardDate}>{date}</Text>
+            </View>
+            <View style={[s.statusPill, { backgroundColor: meta.bg }]}>
+              <View style={[s.pillDot, { backgroundColor: meta.dot }]} />
+              <Text style={[s.pillText, { color: meta.text }]}>{item.status}</Text>
             </View>
           </View>
 
-          <View style={s.infoRow}>
-            <MaterialIcons name="location-on" size={14} color={C.textMuted} />
-            <Text style={s.infoText} numberOfLines={1}>{item.address}</Text>
+          {/* Divider */}
+          <View style={s.cardDivider} />
+
+          {/* Info rows */}
+          <View style={s.cardInfoRow}>
+            <MaterialIcons name="location-on" size={14} color={C.textLight} />
+            <Text style={s.cardInfoText} numberOfLines={1}>{item.address}</Text>
           </View>
-          <View style={s.infoRow}>
-            <MaterialIcons name="phone" size={14} color={C.textMuted} />
-            <Text style={s.infoText}>{item.phone}</Text>
+          <View style={[s.cardInfoRow, { marginTop: 5 }]}>
+            <MaterialIcons name="phone" size={14} color={C.textLight} />
+            <Text style={s.cardInfoText}>{item.phone}</Text>
           </View>
-          <Text style={s.dateText}>{date}</Text>
 
           {/* Action buttons */}
-          <View style={s.actionRow}>
+          <View style={s.cardActions}>
             <TouchableOpacity
-              style={[s.btn, s.btnPrimary]}
+              style={s.actionPrimary}
               onPress={() => navigation.navigate('DeliveryDetail', { delivery: item })}
             >
               <MaterialIcons name="visibility" size={14} color="#fff" />
-              <Text style={s.btnText}>Track</Text>
+              <Text style={s.actionPrimaryText}>Track</Text>
             </TouchableOpacity>
 
             {user?.isAdmin && (
               <>
                 <TouchableOpacity
-                  style={[s.btn, s.btnSecondary]}
+                  style={s.actionOutline}
                   onPress={() => navigation.navigate('UpdateDelivery', { delivery: item })}
                 >
                   <MaterialIcons name="edit" size={14} color={C.primary} />
-                  <Text style={[s.btnText, { color: C.primary }]}>Update</Text>
+                  <Text style={s.actionOutlineText}>Edit</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
-                  style={[s.btn, s.btnDanger]}
+                  style={s.actionDanger}
                   onPress={() => handleDelete(item._id)}
                 >
                   <MaterialIcons name="delete-outline" size={14} color="#fff" />
-                  <Text style={s.btnText}>Delete</Text>
+                  <Text style={s.actionPrimaryText}>Delete</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -162,43 +184,32 @@ export default function DeliveryListScreen({ navigation }) {
       {/* Header */}
       <View style={s.header}>
         <View>
-          <Text style={s.headerTitle}>🚚 Deliveries</Text>
-          <Text style={s.headerSub}>{user?.isAdmin ? 'All orders' : 'Your orders'}</Text>
+          <Text style={s.headerTitle}>Deliveries</Text>
+          <Text style={s.headerSub}>
+            {user?.isAdmin ? `${deliveries.length} total records` : 'Your active orders'}
+          </Text>
         </View>
         {user?.isAdmin && (
           <TouchableOpacity
-            style={s.addBtn}
+            style={s.newBtn}
             onPress={() => navigation.navigate('CreateDelivery')}
           >
-            <MaterialIcons name="add" size={20} color="#fff" />
-            <Text style={s.addBtnText}>New</Text>
+            <MaterialIcons name="add" size={18} color="#fff" />
+            <Text style={s.newBtnText}>New</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Stats strip (admin only) */}
-      {user?.isAdmin && deliveries.length > 0 && (
-        <View style={s.statsRow}>
-          {['Pending', 'Preparing', 'Out for Delivery', 'Delivered'].map((status) => {
-            const count  = deliveries.filter((d) => d.status === status).length;
-            const colors = STATUS_COLORS[status];
-            return (
-              <View key={status} style={[s.statChip, { backgroundColor: colors.bg }]}>
-                <Text style={[s.statCount, { color: colors.dot }]}>{count}</Text>
-                <Text style={[s.statLabel, { color: colors.text }]} numberOfLines={1}>
-                  {status === 'Out for Delivery' ? 'On Way' : status}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      )}
+      <StatRow />
 
       <FlatList
         data={deliveries}
-        keyExtractor={(item) => item._id}
+        keyExtractor={item => item._id}
         renderItem={renderItem}
-        contentContainerStyle={deliveries.length === 0 ? { flex: 1 } : s.listContent}
+        contentContainerStyle={
+          deliveries.length === 0 ? s.emptyContainer : s.list
+        }
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -208,12 +219,14 @@ export default function DeliveryListScreen({ navigation }) {
         }
         ListEmptyComponent={
           <View style={s.emptyWrap}>
-            <MaterialIcons name="delivery-dining" size={80} color={C.border} />
-            <Text style={s.emptyTitle}>No deliveries yet</Text>
-            <Text style={s.emptySubtitle}>
+            <View style={s.emptyIconBox}>
+              <MaterialIcons name="local-shipping" size={40} color={C.textLight} />
+            </View>
+            <Text style={s.emptyTitle}>No deliveries found</Text>
+            <Text style={s.emptySub}>
               {user?.isAdmin
-                ? 'Deliveries are created automatically when a customer places an order.'
-                : 'Place an order from the Menu and your delivery will appear here.'}
+                ? 'Deliveries are created automatically when customers place orders.'
+                : 'Place an order and your delivery will appear here.'}
             </Text>
           </View>
         }
@@ -224,71 +237,99 @@ export default function DeliveryListScreen({ navigation }) {
 
 const s = StyleSheet.create({
   safe:    { flex: 1, backgroundColor: C.bg },
-  centered:{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
+  centered:{ flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 24) + 12,
+    paddingBottom: 16,
     backgroundColor: C.surface,
-    borderBottomWidth: 1, borderBottomColor: C.border,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
   },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: C.textDark },
-  headerSub:   { fontSize: 13, color: C.textMuted, marginTop: 2 },
-  addBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
+  headerTitle: { fontSize: 22, fontWeight: '800', color: C.textDark, letterSpacing: -0.4 },
+  headerSub:   { fontSize: 13, color: C.textMid, marginTop: 2 },
+  newBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
     backgroundColor: C.primary,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: 9,
+    borderRadius: 22,
   },
-  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  newBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
-  statsRow: {
-    flexDirection: 'row', gap: 8,
-    paddingHorizontal: 16, paddingVertical: 12,
-    backgroundColor: C.bg,
+  // Stats
+  statStrip: {
+    flexDirection: 'row',
+    backgroundColor: C.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+    paddingVertical: 12,
   },
-  statChip: {
-    flex: 1, borderRadius: 12, paddingVertical: 8, paddingHorizontal: 6, alignItems: 'center',
-  },
-  statCount: { fontSize: 20, fontWeight: '900' },
-  statLabel: { fontSize: 10, fontWeight: '700', marginTop: 2, textAlign: 'center' },
+  statItem:  { flex: 1, alignItems: 'center' },
+  statCount: { fontSize: 20, fontWeight: '800', marginBottom: 2 },
+  statLabel: { fontSize: 10, color: C.textMid, fontWeight: '600', textAlign: 'center' },
 
-  listContent: { padding: 16 },
+  list:          { padding: 16, gap: 12 },
+  emptyContainer:{ flex: 1 },
 
+  // Card
   card: {
     backgroundColor: C.surface,
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: 16,
+    marginBottom: 12,
     flexDirection: 'row',
-    shadowColor: '#000',
+    overflow: 'hidden',
+    shadowColor: C.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
     elevation: 3,
   },
-  cardLeft: { marginRight: 14 },
-  iconWrap:  { width: 52, height: 52, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  cardBody:  { flex: 1 },
+  cardAccent: { width: 4 },
+  cardInner:  { flex: 1, padding: 16 },
 
-  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  orderId:    { fontSize: 14, fontWeight: '800', color: C.textDark, flex: 1, marginRight: 8 },
-  badge:      { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  dot:        { width: 6, height: 6, borderRadius: 3, marginRight: 4 },
-  badgeText:  { fontSize: 11, fontWeight: '700' },
+  cardHead:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  cardHeadLeft: { flex: 1, marginRight: 12 },
+  cardOrderId:  { fontSize: 15, fontWeight: '800', color: C.textDark, letterSpacing: 0.3 },
+  cardDate:     { fontSize: 12, color: C.textLight, marginTop: 2 },
 
-  infoRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  infoText:  { fontSize: 13, color: C.textMuted, marginLeft: 4, flex: 1 },
-  dateText:  { fontSize: 12, color: C.textMuted, marginTop: 4, marginBottom: 10 },
+  statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, gap: 5 },
+  pillDot:    { width: 6, height: 6, borderRadius: 3 },
+  pillText:   { fontSize: 11, fontWeight: '700' },
 
-  actionRow: { flexDirection: 'row', gap: 8 },
-  btn:       { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10 },
-  btnPrimary:  { backgroundColor: C.primary },
-  btnSecondary:{ backgroundColor: '#FFF2EE', borderWidth: 1, borderColor: C.primary },
-  btnDanger:   { backgroundColor: '#FF3B30' },
-  btnText:     { color: '#fff', fontWeight: '700', fontSize: 12 },
+  cardDivider: { height: 1, backgroundColor: C.border, marginVertical: 12 },
 
-  emptyWrap:    { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 32 },
-  emptyTitle:   { fontSize: 20, fontWeight: '800', color: C.textDark, marginTop: 16, marginBottom: 8 },
-  emptySubtitle:{ fontSize: 14, color: C.textMuted, textAlign: 'center', lineHeight: 22 },
+  cardInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  cardInfoText:{ flex: 1, fontSize: 13, color: C.textMid, lineHeight: 18 },
+
+  cardActions: { flexDirection: 'row', gap: 8, marginTop: 14 },
+  actionPrimary: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: C.primary,
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderRadius: 8,
+  },
+  actionOutline: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    borderWidth: 1.5, borderColor: C.primary,
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderRadius: 8,
+  },
+  actionDanger: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderRadius: 8,
+  },
+  actionPrimaryText: { color: '#fff', fontWeight: '700', fontSize: 12 },
+  actionOutlineText: { color: C.primary, fontWeight: '700', fontSize: 12 },
+
+  // Empty
+  emptyWrap:    { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 40 },
+  emptyIconBox: { width: 80, height: 80, borderRadius: 24, backgroundColor: C.border, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  emptyTitle:   { fontSize: 18, fontWeight: '800', color: C.textDark, marginBottom: 8 },
+  emptySub:     { fontSize: 14, color: C.textMid, textAlign: 'center', lineHeight: 22 },
 });
