@@ -97,6 +97,21 @@ const CartScreen = ({ navigation }) => {
             renderItem={renderItem}
             contentContainerStyle={s.list}
             showsVerticalScrollIndicator={false}
+            ListFooterComponent={
+              <View style={s.promoInputRow}>
+                <View style={s.promoInputWrap}>
+                  <MaterialIcons name="local-offer" size={18} color={C.textLight} style={{ marginRight: 8 }} />
+                  <TextInput
+                    style={s.promoInput}
+                    placeholder="Enter Promo Code"
+                    placeholderTextColor={C.textLight}
+                  />
+                </View>
+                <TouchableOpacity style={s.applyBtn}>
+                  <Text style={s.applyText}>Apply</Text>
+                </TouchableOpacity>
+              </View>
+            }
           />
 
           {/* Order Summary Footer */}
@@ -166,6 +181,24 @@ const s = StyleSheet.create({
     paddingHorizontal: 32, paddingVertical: 14,
   },
   browseBtnText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+
+  // Promo
+  promoInputRow: { 
+    flexDirection: 'row', alignItems: 'center', gap: 12, 
+    marginTop: 10, marginBottom: 20 
+  },
+  promoInputWrap: { 
+    flex: 1, flexDirection: 'row', alignItems: 'center', 
+    backgroundColor: C.surface, borderRadius: 12, 
+    paddingHorizontal: 12, paddingVertical: 12,
+    borderWidth: 1, borderColor: C.border,
+  },
+  promoInput: { flex: 1, fontSize: 14, color: C.textDark },
+  applyBtn: { 
+    backgroundColor: C.textDark, borderRadius: 12, 
+    paddingHorizontal: 20, paddingVertical: 12 
+  },
+  applyText: { color: '#fff', fontSize: 14, fontWeight: '800' },
 
   // Footer
   footer: {

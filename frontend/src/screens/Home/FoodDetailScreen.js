@@ -6,6 +6,7 @@ import {
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { useIsFocused } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL, IMAGE_BASE_URL } from '../../services/api';
@@ -82,6 +83,7 @@ const FoodDetailScreen = ({ route, navigation }) => {
   const { food } = route.params;
   const { user, userToken } = useContext(AuthContext);
   const { addToCart, cartCount } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const isFocused = useIsFocused();
 
   const [reviews, setReviews] = useState([]);
@@ -259,6 +261,16 @@ const FoodDetailScreen = ({ route, navigation }) => {
                   </View>
                 )}
               </TouchableOpacity>
+              <TouchableOpacity 
+                style={s.wishBtn} 
+                onPress={() => toggleWishlist(food)}
+              >
+                <MaterialIcons 
+                  name={isInWishlist(food._id) ? "favorite" : "favorite-border"} 
+                  size={22} 
+                  color={isInWishlist(food._id) ? C.primary : "#fff"} 
+                />
+              </TouchableOpacity>
             </View>
 
             {/* Info Card */}
@@ -413,6 +425,15 @@ const s = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   cartBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+  wishBtn: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 54 : (StatusBar.currentHeight || 24) + 10,
+    right: 70,
+    width: 40, height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center', alignItems: 'center',
+  },
 
   // Info Card
   infoCard: {

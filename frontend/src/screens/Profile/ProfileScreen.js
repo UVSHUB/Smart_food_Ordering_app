@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../../services/api';
 
@@ -38,6 +39,7 @@ function MenuRow({ icon, label, subtitle, iconBg, iconColor, onPress, danger }) 
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function ProfileScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
+  const { wishlist } = useWishlist();
   const [loading, setLoading] = useState(false);
 
   if (!user) return null;
@@ -107,18 +109,18 @@ export default function ProfileScreen({ navigation }) {
         {/* ── Stats strip ── */}
         <View style={s.statsRow}>
           <View style={s.statBox}>
-            <MaterialIcons name="restaurant-menu" size={22} color={C.primary} />
+            <Text style={s.statVal}>0</Text>
             <Text style={s.statLabel}>Orders</Text>
           </View>
           <View style={s.statDivider} />
           <View style={s.statBox}>
-            <MaterialIcons name="local-shipping" size={22} color={C.primary} />
+            <Text style={s.statVal}>0</Text>
             <Text style={s.statLabel}>Deliveries</Text>
           </View>
           <View style={s.statDivider} />
           <View style={s.statBox}>
-            <MaterialIcons name="star" size={22} color={C.primary} />
-            <Text style={s.statLabel}>Reviews</Text>
+            <Text style={s.statVal}>{wishlist.length}</Text>
+            <Text style={s.statLabel}>Favorites</Text>
           </View>
         </View>
 
@@ -142,6 +144,15 @@ export default function ProfileScreen({ navigation }) {
               iconBg="#F0FDF4"
               iconColor="#22C55E"
               onPress={() => navigation.navigate('PaymentHistory')}
+            />
+            <View style={s.divider} />
+            <MenuRow
+              icon="favorite"
+              label="My Favorites"
+              subtitle={`${wishlist.length} items saved for later`}
+              iconBg="#FFF0F5"
+              iconColor="#E91E63"
+              onPress={() => navigation.navigate('Wishlist')}
             />
             <View style={s.divider} />
             <MenuRow
@@ -246,9 +257,10 @@ const s = StyleSheet.create({
     shadowOpacity: 0.08, shadowRadius: 12, elevation: 5,
     marginBottom: 8,
   },
-  statBox:     { flex: 1, alignItems: 'center', gap: 6 },
-  statLabel:   { fontSize: 12, fontWeight: '700', color: C.textMuted },
-  statDivider: { width: 1, backgroundColor: C.border },
+  statBox:     { flex: 1, alignItems: 'center', gap: 2 },
+  statVal:     { fontSize: 18, fontWeight: '900', color: C.textDark },
+  statLabel:   { fontSize: 11, fontWeight: '700', color: C.textLight, textTransform: 'uppercase' },
+  statDivider: { width: 1, backgroundColor: C.border, marginVertical: 4 },
 
   // Sections
   section:       { paddingHorizontal: 20, marginTop: 20 },

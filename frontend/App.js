@@ -9,6 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 // ── Auth Context ──
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import { CartProvider } from './src/context/CartContext';
+import { WishlistProvider } from './src/context/WishlistContext';
 
 // ── Auth Screens ──
 import LoginScreen    from './src/screens/Auth/LoginScreen';
@@ -36,6 +37,7 @@ import EditFoodScreen from './src/screens/MenuAdmin/EditFoodScreen';
 // ── Profile Screens ──
 import ProfileScreen     from './src/screens/Profile/ProfileScreen';
 import EditProfileScreen from './src/screens/Profile/EditProfileScreen';
+import WishlistScreen    from './src/screens/Profile/WishlistScreen';
 
 // ── Admin User Management ──
 import UserListScreen     from './src/screens/UserAdmin/UserListScreen';
@@ -71,14 +73,21 @@ const screenOptions = {
 };
 
 // ── Tab Icon Component ──
-const TabIcon = ({ iconName, label, focused }) => (
+const TabIcon = ({ iconName, label, focused, badgeCount }) => (
   <View style={styles.tabIconWrap}>
-    <MaterialIcons
-      name={iconName}
-      size={24}
-      color={focused ? C.primary : C.textMuted}
-      style={{ marginBottom: 4 }}
-    />
+    <View>
+      <MaterialIcons
+        name={iconName}
+        size={24}
+        color={focused ? C.primary : C.textMuted}
+        style={{ marginBottom: 4 }}
+      />
+      {badgeCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
+        </View>
+      )}
+    </View>
     <Text style={[styles.tabLabel, focused && styles.tabLabelActive]} numberOfLines={1}>
       {label}
     </Text>
@@ -121,6 +130,7 @@ function ProfileStack() {
       <Stack.Screen name="PaymentHistory"  component={PaymentHistoryScreen} />
       <Stack.Screen name="PaymentDetail"   component={PaymentDetailScreen} />
       <Stack.Screen name="DeliveryHistory" component={DeliveryListScreen} />
+      <Stack.Screen name="Wishlist"        component={WishlistScreen} />
     </Stack.Navigator>
   );
 }
@@ -162,6 +172,7 @@ function AdminUserStack() {
 // ── Navigation Wrapper ──
 function AppNav() {
   const { isLoading, userToken, user } = useContext(AuthContext);
+  const { cartCount } = useContext(CartContext);
 
   if (isLoading) {
     return (
@@ -194,7 +205,7 @@ function AppNav() {
                   component={CustomerStack}
                   options={{
                     tabBarIcon: ({ focused }) => (
-                      <TabIcon iconName="restaurant-menu" label="Menu" focused={focused} />
+                      <TabIcon iconName="restaurant-menu" label="Menu" focused={focused} badgeCount={cartCount} />
                     ),
                   }}
                 />
@@ -260,8 +271,10 @@ export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <StatusBar style="dark" />
-        <AppNav />
+        <WishlistProvider>
+          <StatusBar style="dark" />
+          <AppNav />
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );
@@ -291,4 +304,11 @@ const styles = StyleSheet.create({
     color: C.primary,
     fontWeight: '800',
   },
+  badge: {
+    position: 'absolute', top: -4, right: -6,
+    backgroundColor: C.primary, minWidth: 16, height: 16, borderRadius: 8,
+    paddingHorizontal: 4, justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1.5, borderColor: C.surface,
+  },
+  badgeText: { color: '#fff', fontSize: 9, fontWeight: '900' },
 });
