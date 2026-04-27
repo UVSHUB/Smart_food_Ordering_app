@@ -7,6 +7,8 @@ import {
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { useAddresses } from '../../context/AddressContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../../services/api';
 
@@ -33,6 +35,8 @@ const SectionTitle = ({ title }) => (
 const PaymentScreen = ({ navigation, route }) => {
   const { user } = useContext(AuthContext);
   const { cartItems, clearCart, cartTotal } = useCart();
+  const { addresses } = useAddresses();
+  const { addNotification } = useNotifications();
   const amount = route?.params?.amount || cartTotal || 0;
 
   const [method,  setMethod]  = useState('Cash');
@@ -75,6 +79,13 @@ const PaymentScreen = ({ navigation, route }) => {
         address:        address.trim(),
         phone:          phone.trim(),
         items,
+      });
+      
+      // Add notification
+      addNotification({
+        title: 'Order Placed!',
+        body: `Your order #${data.payment._id.slice(-8).toUpperCase()} for Rs. ${amount.toFixed(2)} was successful.`,
+        type: 'success'
       });
 
       // Clear cart
@@ -150,6 +161,34 @@ const PaymentScreen = ({ navigation, route }) => {
 
           {/* Delivery Details */}
           <SectionTitle title="Delivery Details" />
+          
+          {/* Saved Addresses Picker */}
+          {addresses.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.addrScroll}>
+              {addresses.map(a => (
+                <TouchableOpacity 
+                  key={a.id} 
+                  style={[s.addrChip, address === a.address && s.addrChipActive]}
+                  onPress={() => setAddress(a.address)}
+                >
+                  <MaterialIcons 
+                    name={a.label.toLowerCase() === 'home' ? 'home' : 'place'} 
+                    size={16} 
+                    color={address === a.address ? '#fff' : C.textMid} 
+                  />
+                  <Text style={[s.addrChipText, address === a.address && s.addrChipTextActive]}>{a.label}</Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity 
+                style={[s.addrChip, address === '' && s.addrChipActive]}
+                onPress={() => setAddress('')}
+              >
+                <MaterialIcons name="edit" size={16} color={address === '' ? '#fff' : C.textMid} />
+                <Text style={[s.addrChipText, address === '' && s.addrChipTextActive]}>Custom</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          )}
+
           <View style={s.formCard}>
             <View style={s.inputRow}>
               <View style={s.inputIcon}>
@@ -276,6 +315,18 @@ const s = StyleSheet.create({
   itemPrice: { fontSize: 14, fontWeight: '700', color: C.textDark },
   divider:   { height: 1, backgroundColor: C.border, marginVertical: 10 },
 
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  addrScroll: { paddingBottom: 12, gap: 10 },
+  addrChip: { 
+    flexDirection: 'row', alignItems: 'center', gap: 6, 
+    backgroundColor: C.surface, paddingHorizontal: 16, paddingVertical: 10, 
+    borderRadius: 12, borderWidh: 1, borderColor: C.border 
+  },
+  addrChipActive: { backgroundColor: C.primary, borderColor: C.primary },
+  addrChipText: { fontSize: 13, fontWeight: '700', color: C.textMid },
+  addrChipTextActive: { color: '#fff' },
   formCard: {
     backgroundColor: C.surface,
     borderRadius: 18,

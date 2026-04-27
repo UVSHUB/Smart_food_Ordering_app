@@ -11,6 +11,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL, IMAGE_BASE_URL } from '../../services/api';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
+import { useNotifications } from '../../context/NotificationContext';
 
 const { width } = Dimensions.get('window');
 
@@ -49,6 +50,7 @@ const UserMenuScreen = ({ navigation }) => {
 
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { cartCount } = useCart();
+  const { unreadCount } = useNotifications();
 
   const fetchFoods = async (isRefresh = false) => {
     try {
@@ -167,9 +169,22 @@ const UserMenuScreen = ({ navigation }) => {
             <MaterialIcons name="keyboard-arrow-down" size={18} color={C.textMuted} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={s.headerProfile} onPress={() => navigation.navigate('ProfileTab')}>
-          <MaterialIcons name="account-circle" size={32} color={C.textMuted} />
-        </TouchableOpacity>
+        <View style={s.headerRight}>
+          <TouchableOpacity 
+            style={s.headerIcon} 
+            onPress={() => navigation.navigate('Notifications')}
+          >
+            <MaterialIcons name="notifications-none" size={26} color={C.textDark} />
+            {unreadCount > 0 && (
+              <View style={s.notifBadge}>
+                <Text style={s.notifBadgeText}>{unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity style={s.headerProfile} onPress={() => navigation.navigate('ProfileTab')}>
+            <MaterialIcons name="account-circle" size={32} color={C.textMuted} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -289,7 +304,15 @@ const s = StyleSheet.create({
   addressLabel: { fontSize: 10, color: C.textLight, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
   addressRow:   { flexDirection: 'row', alignItems: 'center', marginTop: 1 },
   addressText:  { fontSize: 14, fontWeight: '800', color: C.textDark, marginHorizontal: 2, maxWidth: width * 0.6 },
+  headerRight:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerIcon:   { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   headerProfile:{ width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
+  notifBadge:   { 
+    position: 'absolute', top: 8, right: 8, 
+    backgroundColor: C.primary, width: 16, height: 16, borderRadius: 8, 
+    justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: C.surface 
+  },
+  notifBadgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
 
   // Search
   searchRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 12, marginTop: 8 },

@@ -163,6 +163,15 @@ export default function ProfileScreen({ navigation }) {
               iconColor="#3B82F6"
               onPress={() => navigation.navigate('DeliveryHistory')}
             />
+            <View style={s.divider} />
+            <MenuRow
+              icon="map"
+              label="Manage Addresses"
+              subtitle="Save home and work locations"
+              iconBg="#FDF2F8"
+              iconColor="#DB2777"
+              onPress={() => navigation.navigate('ManageAddresses')}
+            />
           </View>
         </View>
 

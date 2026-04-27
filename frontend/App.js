@@ -10,6 +10,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import CartContext, { CartProvider } from './src/context/CartContext';
 import { WishlistProvider } from './src/context/WishlistContext';
+import { AddressProvider } from './src/context/AddressContext';
+import { NotificationProvider } from './src/context/NotificationContext';
 
 // ── Auth Screens ──
 import LoginScreen    from './src/screens/Auth/LoginScreen';
@@ -21,6 +23,7 @@ import FoodDetailScreen from './src/screens/Home/FoodDetailScreen';
 import AddReviewScreen  from './src/screens/Home/AddReviewScreen';
 import EditReviewScreen from './src/screens/Home/EditReviewScreen';
 import CartScreen       from './src/screens/Cart/CartScreen';
+import NotificationScreen from './src/screens/Profile/NotificationScreen';
 
 // ── Payment Screens ──
 import PaymentScreen        from './src/screens/Payment/PaymentScreen';
@@ -38,6 +41,7 @@ import EditFoodScreen from './src/screens/MenuAdmin/EditFoodScreen';
 import ProfileScreen     from './src/screens/Profile/ProfileScreen';
 import EditProfileScreen from './src/screens/Profile/EditProfileScreen';
 import WishlistScreen    from './src/screens/Profile/WishlistScreen';
+import ManageAddressesScreen from './src/screens/Profile/ManageAddressesScreen';
 
 // ── Admin User Management ──
 import UserListScreen     from './src/screens/UserAdmin/UserListScreen';
@@ -113,6 +117,7 @@ function CustomerStack() {
       <Stack.Screen name="AddReview"     component={AddReviewScreen}     options={{ headerShown: false }} />
       <Stack.Screen name="EditReview"    component={EditReviewScreen}    options={{ headerShown: false }} />
       <Stack.Screen name="Cart"          component={CartScreen}          options={{ headerShown: false }} />
+      <Stack.Screen name="Notifications" component={NotificationScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Payment"       component={PaymentScreen}       options={{ headerShown: false }} />
       <Stack.Screen name="OrderSuccess"  component={OrderSuccessScreen}  options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ headerShown: false }} />
@@ -131,6 +136,7 @@ function ProfileStack() {
       <Stack.Screen name="PaymentDetail"   component={PaymentDetailScreen} />
       <Stack.Screen name="DeliveryHistory" component={DeliveryListScreen} />
       <Stack.Screen name="Wishlist"        component={WishlistScreen} />
+      <Stack.Screen name="ManageAddresses" component={ManageAddressesScreen} />
     </Stack.Navigator>
   );
 }
@@ -173,6 +179,8 @@ function AdminUserStack() {
 function AppNav() {
   const { isLoading, userToken, user } = useContext(AuthContext);
   const { cartCount } = useContext(CartContext);
+  // Need to import useNotifications here too for the Bell icon if needed later
+  // but for now just getting providers in place.
 
   if (isLoading) {
     return (
@@ -272,8 +280,12 @@ export default function App() {
     <AuthProvider>
       <CartProvider>
         <WishlistProvider>
-          <StatusBar style="dark" />
-          <AppNav />
+          <AddressProvider>
+            <NotificationProvider>
+              <StatusBar style="dark" />
+              <AppNav />
+            </NotificationProvider>
+          </AddressProvider>
         </WishlistProvider>
       </CartProvider>
     </AuthProvider>
