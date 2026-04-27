@@ -10,36 +10,35 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import { CartProvider } from './src/context/CartContext';
 
-// ── Cart Screen ──
-import CartScreen from './src/screens/Cart/CartScreen';
-
 // ── Auth Screens ──
-import LoginScreen from './src/screens/Auth/LoginScreen';
+import LoginScreen    from './src/screens/Auth/LoginScreen';
 import RegisterScreen from './src/screens/Auth/RegisterScreen';
 
 // ── Customer Screens ──
-import UserMenuScreen from './src/screens/Home/UserMenuScreen';
+import UserMenuScreen   from './src/screens/Home/UserMenuScreen';
 import FoodDetailScreen from './src/screens/Home/FoodDetailScreen';
-import AddReviewScreen from './src/screens/Home/AddReviewScreen';
+import AddReviewScreen  from './src/screens/Home/AddReviewScreen';
 import EditReviewScreen from './src/screens/Home/EditReviewScreen';
+import CartScreen       from './src/screens/Cart/CartScreen';
 
 // ── Payment Screens ──
-import PaymentScreen from './src/screens/Payment/PaymentScreen';
+import PaymentScreen        from './src/screens/Payment/PaymentScreen';
 import PaymentHistoryScreen from './src/screens/Payment/PaymentHistoryScreen';
-import PaymentDetailScreen from './src/screens/Payment/PaymentDetailScreen';
-import AdminPaymentScreen from './src/screens/Payment/AdminPaymentScreen';
+import PaymentDetailScreen  from './src/screens/Payment/PaymentDetailScreen';
+import AdminPaymentScreen   from './src/screens/Payment/AdminPaymentScreen';
+import OrderSuccessScreen   from './src/screens/Payment/OrderSuccessScreen';
 
 // ── Admin Screens ──
 import FoodListScreen from './src/screens/MenuAdmin/FoodListScreen';
-import AddFoodScreen from './src/screens/MenuAdmin/AddFoodScreen';
+import AddFoodScreen  from './src/screens/MenuAdmin/AddFoodScreen';
 import EditFoodScreen from './src/screens/MenuAdmin/EditFoodScreen';
 
 // ── Profile Screens ──
-import ProfileScreen from './src/screens/Profile/ProfileScreen';
+import ProfileScreen     from './src/screens/Profile/ProfileScreen';
 import EditProfileScreen from './src/screens/Profile/EditProfileScreen';
 
 // ── Admin User Management ──
-import UserListScreen from './src/screens/UserAdmin/UserListScreen';
+import UserListScreen     from './src/screens/UserAdmin/UserListScreen';
 import EditUserAdminScreen from './src/screens/UserAdmin/EditUserAdminScreen';
 
 // ── Delivery Screens ──
@@ -49,37 +48,35 @@ import CreateDeliveryScreen from './src/screens/Delivery/CreateDeliveryScreen';
 import UpdateDeliveryScreen from './src/screens/Delivery/UpdateDeliveryScreen';
 
 // ── Palette ──
-// ── Ultra Premium Modern Palette ──
 const C = {
-  primary:     '#FA4A0C', 
-  bg:          '#F9F9FB', 
-  surface:     '#FFFFFF', 
-  textDark:    '#1A1A1A', 
-  textMuted:   '#9A9A9D', 
-  border:      '#E8E8E8',
+  primary:   '#FA4A0C',
+  bg:        '#F9F9FB',
+  surface:   '#FFFFFF',
+  textDark:  '#1A1A1A',
+  textMuted: '#9A9A9D',
+  border:    '#E8E8E8',
 };
 
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const Tab   = createBottomTabNavigator();
 
 // ── Shared header options ──
 const screenOptions = {
-  headerStyle: { backgroundColor: C.surface },
-  headerTintColor: C.textDark,
+  headerStyle:      { backgroundColor: C.surface },
+  headerTintColor:  C.textDark,
   headerTitleStyle: { fontWeight: '700', fontSize: 18, letterSpacing: 0.3 },
   headerShadowVisible: false,
-  animation: 'slide_from_right',
-  contentStyle: { backgroundColor: C.bg },
+  animation:        'slide_from_right',
+  contentStyle:     { backgroundColor: C.bg },
 };
 
 // ── Tab Icon Component ──
-// ── Tab Icon Component ──
 const TabIcon = ({ iconName, label, focused }) => (
   <View style={styles.tabIconWrap}>
-    <MaterialIcons 
-      name={iconName} 
-      size={24} 
-      color={focused ? C.primary : C.textMuted} 
+    <MaterialIcons
+      name={iconName}
+      size={24}
+      color={focused ? C.primary : C.textMuted}
       style={{ marginBottom: 4 }}
     />
     <Text style={[styles.tabLabel, focused && styles.tabLabelActive]} numberOfLines={1}>
@@ -92,24 +89,25 @@ const TabIcon = ({ iconName, label, focused }) => (
 function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Login"    component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 }
 
-// ── Customer Menu Stack ──
+// ── Customer Menu Stack (includes cart, payment, success) ──
 function CustomerStack() {
   return (
     <Stack.Navigator screenOptions={screenOptions}>
-      <Stack.Screen name="UserMenu" component={UserMenuScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="FoodDetail" component={FoodDetailScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="AddReview" component={AddReviewScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="EditReview" component={EditReviewScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Cart" component={CartScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Payment" component={PaymentScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="UserMenu"      component={UserMenuScreen}      options={{ headerShown: false }} />
+      <Stack.Screen name="FoodDetail"    component={FoodDetailScreen}    options={{ headerShown: false }} />
+      <Stack.Screen name="AddReview"     component={AddReviewScreen}     options={{ headerShown: false }} />
+      <Stack.Screen name="EditReview"    component={EditReviewScreen}    options={{ headerShown: false }} />
+      <Stack.Screen name="Cart"          component={CartScreen}          options={{ headerShown: false }} />
+      <Stack.Screen name="Payment"       component={PaymentScreen}       options={{ headerShown: false }} />
+      <Stack.Screen name="OrderSuccess"  component={OrderSuccessScreen}  options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="PaymentDetail" component={PaymentDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="PaymentDetail"  component={PaymentDetailScreen}  options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -118,10 +116,23 @@ function CustomerStack() {
 function ProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="ProfileMain" component={ProfileScreen} />
-      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-      <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
-      <Stack.Screen name="PaymentDetail" component={PaymentDetailScreen} />
+      <Stack.Screen name="ProfileMain"     component={ProfileScreen} />
+      <Stack.Screen name="EditProfile"     component={EditProfileScreen} />
+      <Stack.Screen name="PaymentHistory"  component={PaymentHistoryScreen} />
+      <Stack.Screen name="PaymentDetail"   component={PaymentDetailScreen} />
+      <Stack.Screen name="DeliveryHistory" component={DeliveryListScreen} />
+    </Stack.Navigator>
+  );
+}
+
+// ── Delivery Stack (all logged-in users) ──
+function DeliveryStack() {
+  return (
+    <Stack.Navigator screenOptions={screenOptions} initialRouteName="DeliveryList">
+      <Stack.Screen name="DeliveryList"   component={DeliveryListScreen}   options={{ headerShown: false }} />
+      <Stack.Screen name="DeliveryDetail" component={DeliveryDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CreateDelivery" component={CreateDeliveryScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="UpdateDelivery" component={UpdateDeliveryScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -130,9 +141,9 @@ function ProfileStack() {
 function AdminFoodStack() {
   return (
     <Stack.Navigator screenOptions={screenOptions} initialRouteName="FoodList">
-      <Stack.Screen name="FoodList" component={FoodListScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="AddFood" component={AddFoodScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="EditFood" component={EditFoodScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="FoodList"     component={FoodListScreen}     options={{ headerShown: false }} />
+      <Stack.Screen name="AddFood"      component={AddFoodScreen}      options={{ headerShown: false }} />
+      <Stack.Screen name="EditFood"     component={EditFoodScreen}     options={{ headerShown: false }} />
       <Stack.Screen name="AdminPayments" component={AdminPaymentScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
@@ -142,28 +153,8 @@ function AdminFoodStack() {
 function AdminUserStack() {
   return (
     <Stack.Navigator screenOptions={screenOptions} initialRouteName="UserList">
-      <Stack.Screen
-        name="UserList"
-        component={UserListScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="EditUserAdmin"
-        component={EditUserAdminScreen}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
-  );
-}
-
-// ── Delivery Stack ──
-function DeliveryStack() {
-  return (
-    <Stack.Navigator screenOptions={screenOptions} initialRouteName="DeliveryList">
-      <Stack.Screen name="DeliveryList"   component={DeliveryListScreen}   options={{ headerShown: false }} />
-      <Stack.Screen name="DeliveryDetail" component={DeliveryDetailScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CreateDelivery" component={CreateDeliveryScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="UpdateDelivery" component={UpdateDeliveryScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="UserList"      component={UserListScreen}      options={{ headerShown: false }} />
+      <Stack.Screen name="EditUserAdmin" component={EditUserAdminScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -185,67 +176,80 @@ function AppNav() {
       {userToken === null ? (
         <AuthStack />
       ) : (
-        <Tab.Navigator
-          screenOptions={{
-            headerShown: false,
-            tabBarStyle: styles.tabBar,
-            tabBarShowLabel: false,
-            tabBarHideOnKeyboard: true,
-          }}
-        >
-          <Tab.Screen
-            name="MenuTab"
-            component={CustomerStack}
-            options={{
-              tabBarIcon: ({ focused }) => (
-                <TabIcon iconName="restaurant-menu" label="Menu" focused={focused} />
-              ),
-            }}
-          />
-
-          {user && user.isAdmin && (
-            <>
-              <Tab.Screen
-                name="ManageFoodTab"
-                component={AdminFoodStack}
-                options={{
-                  tabBarIcon: ({ focused }) => (
-                    <TabIcon iconName="settings" label="Food" focused={focused} />
-                  ),
+        // Wrap authenticated tabs in a named Stack so OrderSuccess can do navigation.reset({ routes: [{ name: 'Main' }] })
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Main">
+            {() => (
+              <Tab.Navigator
+                screenOptions={{
+                  headerShown: false,
+                  tabBarStyle: styles.tabBar,
+                  tabBarShowLabel: false,
+                  tabBarHideOnKeyboard: true,
                 }}
-              />
-              <Tab.Screen
-                name="ManageUserTab"
-                component={AdminUserStack}
-                options={{
-                  tabBarIcon: ({ focused }) => (
-                    <TabIcon iconName="people" label="Users" focused={focused} />
-                  ),
-                }}
-              />
-            </>
-          )}
+              >
+                {/* ── Menu (all users) ── */}
+                <Tab.Screen
+                  name="MenuTab"
+                  component={CustomerStack}
+                  options={{
+                    tabBarIcon: ({ focused }) => (
+                      <TabIcon iconName="restaurant-menu" label="Menu" focused={focused} />
+                    ),
+                  }}
+                />
 
-          <Tab.Screen
-            name="ProfileTab"
-            component={ProfileStack}
-            options={{
-              tabBarIcon: ({ focused }) => (
-                <TabIcon iconName="person" label="Profile" focused={focused} />
-              ),
-            }}
-          />
+                {/* ── Delivery (all users) ── */}
+                <Tab.Screen
+                  name="DeliveryTab"
+                  component={DeliveryStack}
+                  options={{
+                    tabBarIcon: ({ focused }) => (
+                      <TabIcon iconName="local-shipping" label="Delivery" focused={focused} />
+                    ),
+                  }}
+                />
 
-          <Tab.Screen
-            name="DeliveryTab"
-            component={DeliveryStack}
-            options={{
-              tabBarIcon: ({ focused }) => (
-                <TabIcon iconName="local-shipping" label="Delivery" focused={focused} />
-              ),
-            }}
-          />
-        </Tab.Navigator>
+                {/* ── Admin: Manage Food ── */}
+                {user && user.isAdmin && (
+                  <Tab.Screen
+                    name="ManageFoodTab"
+                    component={AdminFoodStack}
+                    options={{
+                      tabBarIcon: ({ focused }) => (
+                        <TabIcon iconName="settings" label="Food" focused={focused} />
+                      ),
+                    }}
+                  />
+                )}
+
+                {/* ── Admin: Manage Users ── */}
+                {user && user.isAdmin && (
+                  <Tab.Screen
+                    name="ManageUserTab"
+                    component={AdminUserStack}
+                    options={{
+                      tabBarIcon: ({ focused }) => (
+                        <TabIcon iconName="people" label="Users" focused={focused} />
+                      ),
+                    }}
+                  />
+                )}
+
+                {/* ── Profile (all users) ── */}
+                <Tab.Screen
+                  name="ProfileTab"
+                  component={ProfileStack}
+                  options={{
+                    tabBarIcon: ({ focused }) => (
+                      <TabIcon iconName="person" label="Profile" focused={focused} />
+                    ),
+                  }}
+                />
+              </Tab.Navigator>
+            )}
+          </Stack.Screen>
+        </Stack.Navigator>
       )}
     </NavigationContainer>
   );

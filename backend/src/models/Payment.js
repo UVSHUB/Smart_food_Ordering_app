@@ -8,7 +8,7 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
     order_id: {
-      type: String, // flexible - can reference order module later
+      type: String,
       default: '',
     },
     amount: {
@@ -31,9 +31,26 @@ const paymentSchema = new mongoose.Schema(
       enum: ['Pending', 'Preparing', 'Delivered'],
       default: 'Pending',
     },
+    // Delivery details captured at checkout
+    address: {
+      type: String,
+      default: '',
+    },
+    phone: {
+      type: String,
+      default: '',
+    },
+    // Snapshot of ordered items
+    items: [
+      {
+        name:  { type: String },
+        price: { type: Number },
+        qty:   { type: Number },
+      },
+    ],
   },
   {
-    timestamps: true, // adds createdAt and updatedAt automatically
+    timestamps: true,
   }
 );
 

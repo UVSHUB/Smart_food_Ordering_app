@@ -1,26 +1,25 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  RefreshControl,
-  SafeAreaView,
-  StatusBar,
+  View, Text, FlatList, TouchableOpacity, StyleSheet,
+  Alert, ActivityIndicator, RefreshControl, SafeAreaView, StatusBar,
 } from 'react-native';
 import axios from 'axios';
+import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../../services/api';
 import { AuthContext } from '../../context/AuthContext';
 
-// ── Status colour map ──────────────────────────────────────────────────────────
 const STATUS_COLORS = {
-  Pending:            { bg: '#FFF3E0', text: '#E65100', dot: '#FF9800' },
-  Preparing:          { bg: '#E3F2FD', text: '#0D47A1', dot: '#2196F3' },
-  'Out for Delivery': { bg: '#F3E5F5', text: '#6A1B9A', dot: '#9C27B0' },
-  Delivered:          { bg: '#E8F5E9', text: '#1B5E20', dot: '#4CAF50' },
+  Pending:            { bg: '#FFF3E0', text: '#E65100', dot: '#FF9800'  },
+  Preparing:          { bg: '#E3F2FD', text: '#0D47A1', dot: '#2196F3'  },
+  'Out for Delivery': { bg: '#F3E5F5', text: '#6A1B9A', dot: '#9C27B0'  },
+  Delivered:          { bg: '#E8F5E9', text: '#1B5E20', dot: '#4CAF50'  },
+};
+
+const STATUS_ICONS = {
+  Pending:            'hourglass-empty',
+  Preparing:          'restaurant',
+  'Out for Delivery': 'delivery-dining',
+  Delivered:          'check-circle',
 };
 
 const C = {
@@ -34,17 +33,15 @@ const C = {
 
 export default function DeliveryListScreen({ navigation }) {
   const { user } = useContext(AuthContext);
-  const [deliveries, setDeliveries] = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [deliveries, setDeliveries]   = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [refreshing, setRefreshing]   = useState(false);
 
-  // Admins see all deliveries; regular users see only their own
   const fetchDeliveries = useCallback(async () => {
     try {
       const url = user?.isAdmin
         ? `${BASE_URL}/deliveries`
         : `${BASE_URL}/deliveries/user/${user?._id}`;
-
       const res = await axios.get(url);
       setDeliveries(res.data.data || []);
     } catch (err) {
@@ -55,22 +52,17 @@ export default function DeliveryListScreen({ navigation }) {
     }
   }, [user]);
 
+  useEffect(() => { fetchDeliveries(); }, [fetchDeliveries]);
   useEffect(() => {
-    fetchDeliveries();
-  }, [fetchDeliveries]);
-
-  // Re-fetch when the screen is focused (after returning from Update/Create)
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', fetchDeliveries);
-    return unsubscribe;
+    const unsub = navigation.addListener('focus', fetchDeliveries);
+    return unsub;
   }, [navigation, fetchDeliveries]);
 
   const handleDelete = (id) => {
-    Alert.alert('Delete Delivery', 'Are you sure you want to delete this delivery?', [
+    Alert.alert('Delete Delivery', 'Are you sure you want to delete this record?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Delete',
-        style: 'destructive',
+        text: 'Delete', style: 'destructive',
         onPress: async () => {
           try {
             await axios.delete(`${BASE_URL}/deliveries/${id}`);
@@ -85,49 +77,71 @@ export default function DeliveryListScreen({ navigation }) {
 
   const renderItem = ({ item }) => {
     const colors = STATUS_COLORS[item.status] || STATUS_COLORS.Pending;
+    const icon   = STATUS_ICONS[item.status]  || 'local-shipping';
+    const date   = new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
     return (
       <TouchableOpacity
-        style={styles.card}
+        style={s.card}
         activeOpacity={0.85}
         onPress={() => navigation.navigate('DeliveryDetail', { delivery: item })}
       >
-        {/* Top row */}
-        <View style={styles.cardTop}>
-          <View style={styles.orderIdWrap}>
-            <Text style={styles.label}>Order ID</Text>
-            <Text style={styles.orderId} numberOfLines={1}>
-              #{item.order_id}
-            </Text>
-          </View>
-          {/* Status badge */}
-          <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-            <View style={[styles.dot, { backgroundColor: colors.dot }]} />
-            <Text style={[styles.badgeText, { color: colors.text }]}>{item.status}</Text>
+        {/* Icon + Status */}
+        <View style={s.cardLeft}>
+          <View style={[s.iconWrap, { backgroundColor: colors.bg }]}>
+            <MaterialIcons name={icon} size={26} color={colors.dot} />
           </View>
         </View>
 
-        {/* Address */}
-        <View style={styles.row}>
-          <Text style={styles.icon}>📍</Text>
-          <Text style={styles.addressText} numberOfLines={2}>{item.address}</Text>
-        </View>
+        {/* Main content */}
+        <View style={s.cardBody}>
+          <View style={s.cardTopRow}>
+            <Text style={s.orderId} numberOfLines={1}>Order #{item.order_id?.slice(-8).toUpperCase()}</Text>
+            <View style={[s.badge, { backgroundColor: colors.bg }]}>
+              <View style={[s.dot, { backgroundColor: colors.dot }]} />
+              <Text style={[s.badgeText, { color: colors.text }]}>{item.status}</Text>
+            </View>
+          </View>
 
-        {/* Action buttons */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.btn, styles.btnPrimary]}
-            onPress={() => navigation.navigate('UpdateDelivery', { delivery: item })}
-          >
-            <Text style={styles.btnTextLight}>Update</Text>
-          </TouchableOpacity>
-          {user?.isAdmin && (
+          <View style={s.infoRow}>
+            <MaterialIcons name="location-on" size={14} color={C.textMuted} />
+            <Text style={s.infoText} numberOfLines={1}>{item.address}</Text>
+          </View>
+          <View style={s.infoRow}>
+            <MaterialIcons name="phone" size={14} color={C.textMuted} />
+            <Text style={s.infoText}>{item.phone}</Text>
+          </View>
+          <Text style={s.dateText}>{date}</Text>
+
+          {/* Action buttons */}
+          <View style={s.actionRow}>
             <TouchableOpacity
-              style={[styles.btn, styles.btnDanger]}
-              onPress={() => handleDelete(item._id)}
+              style={[s.btn, s.btnPrimary]}
+              onPress={() => navigation.navigate('DeliveryDetail', { delivery: item })}
             >
-              <Text style={styles.btnTextLight}>Delete</Text>
+              <MaterialIcons name="visibility" size={14} color="#fff" />
+              <Text style={s.btnText}>Track</Text>
             </TouchableOpacity>
-          )}
+
+            {user?.isAdmin && (
+              <>
+                <TouchableOpacity
+                  style={[s.btn, s.btnSecondary]}
+                  onPress={() => navigation.navigate('UpdateDelivery', { delivery: item })}
+                >
+                  <MaterialIcons name="edit" size={14} color={C.primary} />
+                  <Text style={[s.btnText, { color: C.primary }]}>Update</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.btn, s.btnDanger]}
+                  onPress={() => handleDelete(item._id)}
+                >
+                  <MaterialIcons name="delete-outline" size={14} color="#fff" />
+                  <Text style={s.btnText}>Delete</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -135,43 +149,71 @@ export default function DeliveryListScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
+      <View style={s.centered}>
         <ActivityIndicator size="large" color={C.primary} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>🚚 Deliveries</Text>
+      <View style={s.header}>
+        <View>
+          <Text style={s.headerTitle}>🚚 Deliveries</Text>
+          <Text style={s.headerSub}>{user?.isAdmin ? 'All orders' : 'Your orders'}</Text>
+        </View>
         {user?.isAdmin && (
           <TouchableOpacity
-            style={styles.addBtn}
+            style={s.addBtn}
             onPress={() => navigation.navigate('CreateDelivery')}
           >
-            <Text style={styles.addBtnText}>+ New</Text>
+            <MaterialIcons name="add" size={20} color="#fff" />
+            <Text style={s.addBtnText}>New</Text>
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Stats strip (admin only) */}
+      {user?.isAdmin && deliveries.length > 0 && (
+        <View style={s.statsRow}>
+          {['Pending', 'Preparing', 'Out for Delivery', 'Delivered'].map((status) => {
+            const count  = deliveries.filter((d) => d.status === status).length;
+            const colors = STATUS_COLORS[status];
+            return (
+              <View key={status} style={[s.statChip, { backgroundColor: colors.bg }]}>
+                <Text style={[s.statCount, { color: colors.dot }]}>{count}</Text>
+                <Text style={[s.statLabel, { color: colors.text }]} numberOfLines={1}>
+                  {status === 'Out for Delivery' ? 'On Way' : status}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      )}
 
       <FlatList
         data={deliveries}
         keyExtractor={(item) => item._id}
         renderItem={renderItem}
-        contentContainerStyle={deliveries.length === 0 ? styles.emptyContainer : styles.listContent}
+        contentContainerStyle={deliveries.length === 0 ? { flex: 1 } : s.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchDeliveries(); }} tintColor={C.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => { setRefreshing(true); fetchDeliveries(); }}
+            tintColor={C.primary}
+          />
         }
         ListEmptyComponent={
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyIcon}>📦</Text>
-            <Text style={styles.emptyTitle}>No deliveries found</Text>
-            <Text style={styles.emptySubtitle}>
-              {user?.isAdmin ? 'Create one using the + New button above.' : 'Your deliveries will appear here.'}
+          <View style={s.emptyWrap}>
+            <MaterialIcons name="delivery-dining" size={80} color={C.border} />
+            <Text style={s.emptyTitle}>No deliveries yet</Text>
+            <Text style={s.emptySubtitle}>
+              {user?.isAdmin
+                ? 'Deliveries are created automatically when a customer places an order.'
+                : 'Place an order from the Menu and your delivery will appear here.'}
             </Text>
           </View>
         }
@@ -180,65 +222,73 @@ export default function DeliveryListScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
+const s = StyleSheet.create({
+  safe:    { flex: 1, backgroundColor: C.bg },
+  centered:{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
 
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12,
     backgroundColor: C.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    borderBottomWidth: 1, borderBottomColor: C.border,
   },
   headerTitle: { fontSize: 22, fontWeight: '800', color: C.textDark },
+  headerSub:   { fontSize: 13, color: C.textMuted, marginTop: 2 },
   addBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: C.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 14, paddingVertical: 8,
     borderRadius: 20,
   },
   addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
-  listContent: { padding: 16, gap: 12 },
-  emptyContainer: { flex: 1 },
+  statsRow: {
+    flexDirection: 'row', gap: 8,
+    paddingHorizontal: 16, paddingVertical: 12,
+    backgroundColor: C.bg,
+  },
+  statChip: {
+    flex: 1, borderRadius: 12, paddingVertical: 8, paddingHorizontal: 6, alignItems: 'center',
+  },
+  statCount: { fontSize: 20, fontWeight: '900' },
+  statLabel: { fontSize: 10, fontWeight: '700', marginTop: 2, textAlign: 'center' },
+
+  listContent: { padding: 16 },
 
   card: {
     backgroundColor: C.surface,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 14,
+    flexDirection: 'row',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowRadius: 10,
     elevation: 3,
   },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  orderIdWrap: { flex: 1, marginRight: 8 },
-  label: { fontSize: 11, color: C.textMuted, fontWeight: '600', marginBottom: 2 },
-  orderId: { fontSize: 15, fontWeight: '700', color: C.textDark },
+  cardLeft: { marginRight: 14 },
+  iconWrap:  { width: 52, height: 52, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  cardBody:  { flex: 1 },
 
-  badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  dot: { width: 7, height: 7, borderRadius: 4, marginRight: 5 },
-  badgeText: { fontSize: 12, fontWeight: '700' },
+  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  orderId:    { fontSize: 14, fontWeight: '800', color: C.textDark, flex: 1, marginRight: 8 },
+  badge:      { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  dot:        { width: 6, height: 6, borderRadius: 3, marginRight: 4 },
+  badgeText:  { fontSize: 11, fontWeight: '700' },
 
-  row: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  icon: { fontSize: 14, marginRight: 6, marginTop: 1 },
-  addressText: { flex: 1, fontSize: 14, color: C.textDark, lineHeight: 20 },
+  infoRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  infoText:  { fontSize: 13, color: C.textMuted, marginLeft: 4, flex: 1 },
+  dateText:  { fontSize: 12, color: C.textMuted, marginTop: 4, marginBottom: 10 },
 
-  actionRow: { flexDirection: 'row', gap: 10 },
-  btn: { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center' },
-  btnPrimary: { backgroundColor: C.primary },
-  btnDanger: { backgroundColor: '#FF3B30' },
-  btnTextLight: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  actionRow: { flexDirection: 'row', gap: 8 },
+  btn:       { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10 },
+  btnPrimary:  { backgroundColor: C.primary },
+  btnSecondary:{ backgroundColor: '#FFF2EE', borderWidth: 1, borderColor: C.primary },
+  btnDanger:   { backgroundColor: '#FF3B30' },
+  btnText:     { color: '#fff', fontWeight: '700', fontSize: 12 },
 
-  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
-  emptyIcon: { fontSize: 56, marginBottom: 16 },
-  emptyTitle: { fontSize: 20, fontWeight: '800', color: C.textDark, marginBottom: 8 },
-  emptySubtitle: { fontSize: 14, color: C.textMuted, textAlign: 'center', paddingHorizontal: 32, lineHeight: 20 },
+  emptyWrap:    { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 32 },
+  emptyTitle:   { fontSize: 20, fontWeight: '800', color: C.textDark, marginTop: 16, marginBottom: 8 },
+  emptySubtitle:{ fontSize: 14, color: C.textMuted, textAlign: 'center', lineHeight: 22 },
 });

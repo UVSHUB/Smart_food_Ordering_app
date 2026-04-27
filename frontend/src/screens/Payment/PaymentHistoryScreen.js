@@ -64,28 +64,29 @@ const PaymentHistoryScreen = ({ navigation }) => {
         <View style={s.cardBody}>
           <Text style={s.cardTitle}>{item.payment_method} Payment</Text>
           <Text style={s.cardDate}>{date}</Text>
-        </View>
-        <View style={{ alignItems: 'flex-end', gap: 6 }}>
           <Text style={s.cardAmount}>Rs. {(item.amount || 0).toFixed(2)}</Text>
           <View style={s.badgeRow}>
-            {/* Payment Status */}
             <View style={[s.statusBadge, { backgroundColor: isPaid ? '#F0FDF4' : '#FFFBEB' }]}>
-              <Text style={[s.statusText, { color: isPaid ? C.success : C.pending }]}>
-                {item.status}
-              </Text>
+              <Text style={[s.statusText, { color: isPaid ? C.success : C.pending }]}>{item.status}</Text>
             </View>
-            
-            {/* Order Status */}
-            <View style={[s.statusBadge, { 
-              backgroundColor: item.order_status === 'Delivered' ? '#F0FDF4' : (item.order_status === 'Preparing' ? '#EFF6FF' : '#FFFBEB') 
+            <View style={[s.statusBadge, {
+              backgroundColor: item.order_status === 'Delivered' ? '#F0FDF4' : (item.order_status === 'Preparing' ? '#EFF6FF' : '#FFFBEB')
             }]}>
-              <Text style={[s.statusText, { 
-                color: item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending) 
+              <Text style={[s.statusText, {
+                color: item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending)
               }]}>
                 {item.order_status || 'Pending'}
               </Text>
             </View>
           </View>
+          <TouchableOpacity
+            style={s.trackBtn}
+            onPress={() => navigation.navigate('DeliveryHistory')}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons name="local-shipping" size={13} color={C.primary} />
+            <Text style={s.trackBtnText}>Track Delivery</Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
@@ -171,6 +172,17 @@ const s = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: 80 },
   emptyText: { fontSize: 18, fontWeight: '700', color: C.textMuted, marginTop: 16 },
   emptySubText: { fontSize: 13, color: C.textMuted, marginTop: 6, textAlign: 'center' },
+
+  trackBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFF2EE',
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1, borderColor: C.primary,
+  },
+  trackBtnText: { fontSize: 12, fontWeight: '700', color: C.primary },
 });
 
 export default PaymentHistoryScreen;

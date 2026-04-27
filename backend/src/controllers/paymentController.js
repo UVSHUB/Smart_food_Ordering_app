@@ -1,10 +1,11 @@
 const Payment = require('../models/Payment');
+const Delivery = require('../models/Delivery');
 
 // ── POST /api/payments ──────────────────────────────────────
-// Create a new payment
+// Create a new payment AND auto-create a linked Delivery record
 const createPayment = async (req, res) => {
   try {
-    const { user_id, order_id, amount, payment_method } = req.body;
+    const { user_id, order_id, amount, payment_method, address, phone, items } = req.body;
 
     if (!user_id || !amount) {
       return res.status(400).json({ message: 'user_id and amount are required.' });
@@ -12,7 +13,14 @@ const createPayment = async (req, res) => {
     if (amount <= 0) {
       return res.status(400).json({ message: 'Amount must be greater than 0.' });
     }
+    if (!address || !address.trim()) {
+      return res.status(400).json({ message: 'Delivery address is required.' });
+    }
+    if (!phone || !phone.trim()) {
+      return res.status(400).json({ message: 'Phone number is required.' });
+    }
 
+    // 1. Create the payment record
     const payment = new Payment({
       user_id,
       order_id: order_id || '',
@@ -20,10 +28,33 @@ const createPayment = async (req, res) => {
       payment_method: payment_method || 'Cash',
       status: 'Pending',
       order_status: 'Pending',
+      address: address.trim(),
+      phone: phone.trim(),
+      items: items || [],
     });
 
-    const saved = await payment.save();
-    res.status(201).json(saved);
+    const savedPayment = await payment.save();
+
+    // 2. Auto-create a linked Delivery record
+    const delivery = new Delivery({
+      order_id: savedPayment._id.toString(), // use payment._id as the order reference
+      user_id,
+      address: address.trim(),
+      phone: phone.trim(),
+      status: 'Pending',
+    });
+
+    const savedDelivery = await delivery.save();
+
+    // 3. Update the payment with the delivery's order_id reference
+    savedPayment.order_id = savedPayment._id.toString();
+    await savedPayment.save();
+
+    res.status(201).json({
+      success: true,
+      payment: savedPayment,
+      delivery: savedDelivery,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

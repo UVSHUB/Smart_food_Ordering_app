@@ -1,16 +1,15 @@
 import React, { useState, useContext } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, ScrollView, StatusBar, Platform
+  View, Text, StyleSheet, TouchableOpacity, Alert,
+  ActivityIndicator, ScrollView, StatusBar, Platform,
+  TextInput, KeyboardAvoidingView,
 } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { MaterialIcons } from '@expo/vector-icons';
-
 import { BASE_URL } from '../../services/api';
 
-// ── Ultra Premium Modern Palette ──────────────────────
 const C = {
   primary:   '#FA4A0C',
   bg:        '#F9F9FB',
@@ -27,126 +26,202 @@ const METHODS = [
   { key: 'Online', icon: 'phone-android', label: 'Online Transfer' },
 ];
 
+const SectionTitle = ({ title }) => (
+  <Text style={s.sectionTitle}>{title}</Text>
+);
+
 const PaymentScreen = ({ navigation, route }) => {
   const { user } = useContext(AuthContext);
-  const { clearCart } = useCart();
-  const amount = route?.params?.amount || 0;
+  const { cartItems, clearCart, cartTotal } = useCart();
+  const amount = route?.params?.amount || cartTotal || 0;
 
-  const [method, setMethod] = useState('Cash');
+  const [method,  setMethod]  = useState('Cash');
+  const [address, setAddress] = useState('');
+  const [phone,   setPhone]   = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleConfirmPayment = async () => {
     if (!user?._id) {
-      Alert.alert('Error', 'You must be logged in to make a payment.');
+      Alert.alert('Error', 'You must be logged in to place an order.');
       return;
     }
     if (amount <= 0) {
       Alert.alert('Invalid Amount', 'Order amount must be greater than Rs. 0.');
       return;
     }
+    if (!address.trim()) {
+      Alert.alert('Missing Address', 'Please enter your delivery address.');
+      return;
+    }
+    if (!phone.trim()) {
+      Alert.alert('Missing Phone', 'Please enter your phone number.');
+      return;
+    }
 
     try {
       setLoading(true);
+
+      // Build items snapshot from cart
+      const items = cartItems.map((item) => ({
+        name:  item.name,
+        price: item.price,
+        qty:   item.qty,
+      }));
+
       const { data } = await axios.post(`${BASE_URL}/payments`, {
-        user_id: user._id,
+        user_id:        user._id,
         amount,
         payment_method: method,
+        address:        address.trim(),
+        phone:          phone.trim(),
+        items,
       });
 
-      clearCart(); // clear cart after successful payment
+      // Clear cart
+      clearCart();
 
-      Alert.alert(
-        '🎉 Payment Submitted!',
-        `Your payment of Rs. ${amount.toFixed(2)} via ${method} has been submitted.\nStatus: ${data.status}`,
-        [{ text: 'View History', onPress: () => navigation.navigate('PaymentHistory') }]
-      );
+      // Navigate to success screen with full order info
+      navigation.replace('OrderSuccess', {
+        payment:  data.payment,
+        delivery: data.delivery,
+        items,
+        amount,
+        method,
+        address: address.trim(),
+      });
     } catch (err) {
-      console.log(err);
-      Alert.alert('Payment Failed', err.response?.data?.message || 'Network error. Try again.');
+      Alert.alert('Payment Failed', err.response?.data?.message || 'Network error. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={s.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={s.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
-      {/* Top Bar */}
-      <View style={s.topBar}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
-        </TouchableOpacity>
-        <Text style={s.topBarTitle}>Checkout</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        {/* Order Total Card */}
-        <View style={s.totalCard}>
-          <Text style={s.totalLabel}>Order Total</Text>
-          <Text style={s.totalAmount}>Rs. {(amount || 0).toFixed(2)}</Text>
-          <View style={s.restaurantRow}>
-            <MaterialIcons name="restaurant" size={16} color={C.primary} />
-            <Text style={s.restaurantText}>  SLIIT KADE</Text>
-          </View>
-        </View>
-
-        {/* Payment Method */}
-        <Text style={s.sectionTitle}>Payment Method</Text>
-        {METHODS.map((m) => (
-          <TouchableOpacity
-            key={m.key}
-            style={[s.methodCard, method === m.key && s.methodCardActive]}
-            onPress={() => setMethod(m.key)}
-            activeOpacity={0.8}
-          >
-            <View style={[s.methodIcon, method === m.key && s.methodIconActive]}>
-              <MaterialIcons name={m.icon} size={24} color={method === m.key ? '#fff' : C.textMuted} />
-            </View>
-            <Text style={[s.methodLabel, method === m.key && s.methodLabelActive]}>{m.label}</Text>
-            {method === m.key && (
-              <MaterialIcons name="check-circle" size={22} color={C.primary} />
-            )}
+        {/* Top Bar */}
+        <View style={s.topBar}>
+          <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back-ios" size={20} color={C.textDark} />
           </TouchableOpacity>
-        ))}
-
-        {/* Summary */}
-        <View style={s.summaryCard}>
-          <View style={s.summaryRow}>
-            <Text style={s.summaryKey}>Subtotal</Text>
-            <Text style={s.summaryVal}>Rs. {(amount || 0).toFixed(2)}</Text>
-          </View>
-          <View style={s.summaryRow}>
-            <Text style={s.summaryKey}>Service Fee</Text>
-            <Text style={s.summaryVal}>Rs. 0.00</Text>
-          </View>
-          <View style={[s.summaryRow, s.totalRow]}>
-            <Text style={s.totalRowKey}>Total</Text>
-            <Text style={s.totalRowVal}>Rs. {(amount || 0).toFixed(2)}</Text>
-          </View>
+          <Text style={s.topBarTitle}>Checkout</Text>
+          <View style={{ width: 40 }} />
         </View>
-      </ScrollView>
 
-      {/* Confirm Button */}
-      <View style={s.footer}>
-        <TouchableOpacity
-          style={[s.confirmBtn, loading && { opacity: 0.7 }]}
-          onPress={handleConfirmPayment}
-          disabled={loading}
-          activeOpacity={0.85}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
+        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+
+          {/* Order Total Card */}
+          <View style={s.totalCard}>
+            <Text style={s.totalLabel}>Order Total</Text>
+            <Text style={s.totalAmount}>Rs. {(amount || 0).toFixed(2)}</Text>
+            <View style={s.restaurantRow}>
+              <MaterialIcons name="restaurant" size={16} color="rgba(255,255,255,0.8)" />
+              <Text style={s.restaurantText}>  {cartItems.length} item{cartItems.length !== 1 ? 's' : ''} · SLIIT KADE</Text>
+            </View>
+          </View>
+
+          {/* Items Summary */}
+          {cartItems.length > 0 && (
             <>
-              <MaterialIcons name="lock" size={18} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={s.confirmText}>Confirm Payment · Rs. {(amount || 0).toFixed(2)}</Text>
+              <SectionTitle title="Your Order" />
+              <View style={s.itemsCard}>
+                {cartItems.map((item) => (
+                  <View key={item._id} style={s.itemRow}>
+                    <Text style={s.itemQty}>{item.qty}×</Text>
+                    <Text style={s.itemName} numberOfLines={1}>{item.name}</Text>
+                    <Text style={s.itemPrice}>Rs. {(item.price * item.qty).toFixed(2)}</Text>
+                  </View>
+                ))}
+                <View style={s.divider} />
+                <View style={s.itemRow}>
+                  <Text style={[s.itemName, { fontWeight: '800' }]}>Total</Text>
+                  <Text style={[s.itemPrice, { color: C.primary, fontWeight: '900' }]}>
+                    Rs. {(amount).toFixed(2)}
+                  </Text>
+                </View>
+              </View>
             </>
           )}
-        </TouchableOpacity>
+
+          {/* Delivery Details */}
+          <SectionTitle title="Delivery Details" />
+          <View style={s.formCard}>
+            <View style={s.inputRow}>
+              <View style={s.inputIcon}>
+                <MaterialIcons name="location-on" size={20} color={C.primary} />
+              </View>
+              <TextInput
+                style={s.input}
+                placeholder="Delivery address (street, city)"
+                placeholderTextColor={C.textMuted}
+                value={address}
+                onChangeText={setAddress}
+                multiline
+              />
+            </View>
+
+            <View style={[s.inputRow, { marginTop: 12 }]}>
+              <View style={s.inputIcon}>
+                <MaterialIcons name="phone" size={20} color={C.primary} />
+              </View>
+              <TextInput
+                style={s.input}
+                placeholder="Phone number"
+                placeholderTextColor={C.textMuted}
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+              />
+            </View>
+          </View>
+
+          {/* Payment Method */}
+          <SectionTitle title="Payment Method" />
+          {METHODS.map((m) => (
+            <TouchableOpacity
+              key={m.key}
+              style={[s.methodCard, method === m.key && s.methodCardActive]}
+              onPress={() => setMethod(m.key)}
+              activeOpacity={0.8}
+            >
+              <View style={[s.methodIcon, method === m.key && s.methodIconActive]}>
+                <MaterialIcons name={m.icon} size={24} color={method === m.key ? '#fff' : C.textMuted} />
+              </View>
+              <Text style={[s.methodLabel, method === m.key && s.methodLabelActive]}>{m.label}</Text>
+              {method === m.key && (
+                <MaterialIcons name="check-circle" size={22} color={C.primary} />
+              )}
+            </TouchableOpacity>
+          ))}
+
+          <View style={{ height: 120 }} />
+        </ScrollView>
+
+        {/* Confirm Button */}
+        <View style={s.footer}>
+          <TouchableOpacity
+            style={[s.confirmBtn, loading && { opacity: 0.7 }]}
+            onPress={handleConfirmPayment}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <MaterialIcons name="lock" size={18} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={s.confirmText}>Place Order · Rs. {(amount || 0).toFixed(2)}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -163,28 +238,74 @@ const s = StyleSheet.create({
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
   topBarTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
-  scroll: { padding: 20, paddingBottom: 120 },
+  scroll: { padding: 20, paddingBottom: 40 },
 
-  // Total card
   totalCard: {
     backgroundColor: C.primary,
     borderRadius: 24,
     padding: 28,
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
     shadowColor: C.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 8,
   },
-  totalLabel: { fontSize: 14, color: 'rgba(255,255,255,0.75)', fontWeight: '600', marginBottom: 8 },
-  totalAmount: { fontSize: 42, fontWeight: '900', color: '#fff', letterSpacing: -1 },
-  restaurantRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
-  restaurantText: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '600' },
+  totalLabel:      { fontSize: 14, color: 'rgba(255,255,255,0.75)', fontWeight: '600', marginBottom: 8 },
+  totalAmount:     { fontSize: 42, fontWeight: '900', color: '#fff', letterSpacing: -1 },
+  restaurantRow:   { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
+  restaurantText:  { color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600' },
 
-  // Method selection
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: C.textDark, marginBottom: 14, letterSpacing: -0.3 },
+  sectionTitle: { fontSize: 16, fontWeight: '800', color: C.textDark, marginBottom: 12, letterSpacing: -0.3 },
+
+  itemsCard: {
+    backgroundColor: C.surface,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  itemRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  itemQty:   { fontSize: 14, fontWeight: '700', color: C.primary, width: 28 },
+  itemName:  { flex: 1, fontSize: 14, color: C.textDark, fontWeight: '500' },
+  itemPrice: { fontSize: 14, fontWeight: '700', color: C.textDark },
+  divider:   { height: 1, backgroundColor: C.border, marginVertical: 10 },
+
+  formCard: {
+    backgroundColor: C.surface,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: C.bg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  inputIcon: { marginRight: 10, paddingTop: 2 },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: C.textDark,
+    minHeight: 40,
+    textAlignVertical: 'top',
+  },
+
   methodCard: {
     backgroundColor: C.surface,
     borderRadius: 18,
@@ -208,29 +329,9 @@ const s = StyleSheet.create({
     marginRight: 16,
   },
   methodIconActive: { backgroundColor: C.primary },
-  methodLabel: { flex: 1, fontSize: 15, fontWeight: '700', color: C.textMuted },
+  methodLabel:       { flex: 1, fontSize: 15, fontWeight: '700', color: C.textMuted },
   methodLabelActive: { color: C.textDark },
 
-  // Summary
-  summaryCard: {
-    backgroundColor: C.surface,
-    borderRadius: 20,
-    padding: 20,
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
-  summaryKey: { fontSize: 14, color: C.textMuted, fontWeight: '500' },
-  summaryVal: { fontSize: 14, color: C.textDark, fontWeight: '600' },
-  totalRow: { borderTopWidth: 1, borderTopColor: C.border, paddingTop: 14, marginBottom: 0 },
-  totalRowKey: { fontSize: 16, fontWeight: '800', color: C.textDark },
-  totalRowVal: { fontSize: 16, fontWeight: '900', color: C.primary },
-
-  // Footer
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     padding: 20,
