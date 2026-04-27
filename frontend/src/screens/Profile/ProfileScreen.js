@@ -1,261 +1,272 @@
 import React, { useContext, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView,
-  StatusBar, Alert, Platform, ActivityIndicator
+  StatusBar, Alert, Platform, ActivityIndicator, ScrollView,
 } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
-
 import { BASE_URL } from '../../services/api';
 
-// ── Ultra Premium Modern Palette ──────────────────────
 const C = {
-  primary:     '#FA4A0C', 
-  bg:          '#F9F9FB', 
-  surface:     '#FFFFFF', 
-  textDark:    '#1A1A1A', 
-  textMuted:   '#9A9A9D', 
-  danger:      '#FF4B4B',
-  dangerBg:    '#FFF0F0',
-  success:     '#2E7D32',
-  border:      '#E8E8E8',
+  primary:   '#FA4A0C',
+  bg:        '#F9F9FB',
+  surface:   '#FFFFFF',
+  textDark:  '#1A1A1A',
+  textMuted: '#9A9A9D',
+  danger:    '#FF4B4B',
+  dangerBg:  '#FFF0F0',
+  border:    '#F0F0F0',
 };
 
-const ProfileScreen = ({ navigation }) => {
+// ── Menu row ──────────────────────────────────────────────────────────────────
+function MenuRow({ icon, label, subtitle, iconBg, iconColor, onPress, danger }) {
+  return (
+    <TouchableOpacity style={s.menuRow} onPress={onPress} activeOpacity={0.7}>
+      <View style={[s.menuIcon, { backgroundColor: iconBg || '#F3F3F5' }]}>
+        <MaterialIcons name={icon} size={20} color={iconColor || C.textMuted} />
+      </View>
+      <View style={s.menuBody}>
+        <Text style={[s.menuLabel, danger && { color: C.danger }]}>{label}</Text>
+        {subtitle && <Text style={s.menuSub}>{subtitle}</Text>}
+      </View>
+      <MaterialIcons name="chevron-right" size={22} color={C.border} />
+    </TouchableOpacity>
+  );
+}
+
+// ── Main screen ───────────────────────────────────────────────────────────────
+export default function ProfileScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+
+  if (!user) return null;
+
+  const initial = (user.name || 'U')[0].toUpperCase();
+
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Logout', style: 'destructive', onPress: logout },
+    ]);
+  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete Account',
-      'Are you sure you want to permanently delete your account?',
+      'This action is permanent and cannot be undone. Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        {
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               setLoading(true);
               await axios.delete(`${BASE_URL}/users/${user._id}`);
-              setLoading(false);
-              logout(); // local cleanup after remote delete
-            } catch (error) {
-              setLoading(false);
+              logout();
+            } catch {
               Alert.alert('Error', 'Failed to delete account.');
+            } finally {
+              setLoading(false);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
-  if (!user) return null;
-
   return (
-    <View style={s.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+    <SafeAreaView style={s.safe}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
 
-      <View style={s.topBar}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <MaterialIcons name="person" size={24} color={C.primary} style={{ marginRight: 8 }} />
-          <Text style={s.topBarTitle}>Profile</Text>
-        </View>
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
 
-      <View style={s.container}>
-        <View style={s.headerCard}>
-          <View style={s.avatar}>
-            <Text style={s.avatarText}>{(user.name || 'U')[0].toUpperCase()}</Text>
+        {/* ── Premium orange header ── */}
+        <View style={s.heroSection}>
+          <View style={s.avatarWrap}>
+            <Text style={s.avatarText}>{initial}</Text>
           </View>
-          <Text style={s.name}>{user.name}</Text>
-          <Text style={s.email}>{user.email}</Text>
-          {user.isAdmin && (
-            <View style={s.adminBadge}>
-              <MaterialIcons name="verified-user" size={12} color={C.success} style={{ marginRight: 4 }} />
-              <Text style={s.adminText}>Administrator</Text>
+
+          <Text style={s.heroName}>{user.name}</Text>
+          <Text style={s.heroEmail}>{user.email}</Text>
+
+          {user.isAdmin ? (
+            <View style={s.adminPill}>
+              <MaterialIcons name="admin-panel-settings" size={14} color={C.primary} style={{ marginRight: 5 }} />
+              <Text style={s.adminPillText}>Administrator</Text>
             </View>
-          )}
-        </View>
-
-        <View style={s.actionsCard}>
-          <TouchableOpacity 
-            style={s.actionBtn}
-            onPress={() => navigation.navigate('EditProfile')}
-          >
-            <View style={s.btnContent}>
-              <MaterialIcons name="edit" size={22} color={C.textMuted} style={{ marginRight: 14 }} />
-              <Text style={s.btnText}>Edit Profile</Text>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color={C.border} />
-          </TouchableOpacity>
-
-          <View style={s.divider} />
-
-          <TouchableOpacity 
-            style={s.actionBtn}
-            onPress={() => navigation.navigate('PaymentHistory')}
-          >
-            <View style={s.btnContent}>
-              <MaterialIcons name="receipt-long" size={22} color={C.textMuted} style={{ marginRight: 14 }} />
-              <Text style={s.btnText}>Payment History</Text>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color={C.border} />
-          </TouchableOpacity>
-
-          <View style={s.divider} />
-
-          <TouchableOpacity 
-            style={s.actionBtn} 
-            onPress={logout}
-          >
-            <View style={s.btnContent}>
-              <MaterialIcons name="logout" size={22} color={C.textMuted} style={{ marginRight: 14 }} />
-              <Text style={s.btnText}>Logout</Text>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color={C.border} />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity 
-          style={s.deleteBtn}
-          onPress={handleDeleteAccount}
-          disabled={loading}
-        >
-          {loading ? (
-             <ActivityIndicator color={C.danger} />
           ) : (
-             <>
-               <MaterialIcons name="delete-outline" size={20} color={C.danger} style={{ marginRight: 8 }} />
-               <Text style={s.deleteBtnText}>Delete Account</Text>
-             </>
+            <View style={s.userPill}>
+              <MaterialIcons name="person" size={14} color="#fff" style={{ marginRight: 5 }} />
+              <Text style={s.userPillText}>Customer</Text>
+            </View>
           )}
-        </TouchableOpacity>
+        </View>
 
-      </View>
-    </View>
+        {/* ── Stats strip ── */}
+        <View style={s.statsRow}>
+          <View style={s.statBox}>
+            <MaterialIcons name="restaurant-menu" size={22} color={C.primary} />
+            <Text style={s.statLabel}>Orders</Text>
+          </View>
+          <View style={s.statDivider} />
+          <View style={s.statBox}>
+            <MaterialIcons name="local-shipping" size={22} color={C.primary} />
+            <Text style={s.statLabel}>Deliveries</Text>
+          </View>
+          <View style={s.statDivider} />
+          <View style={s.statBox}>
+            <MaterialIcons name="star" size={22} color={C.primary} />
+            <Text style={s.statLabel}>Reviews</Text>
+          </View>
+        </View>
+
+        {/* ── Account section ── */}
+        <View style={s.section}>
+          <Text style={s.sectionHeader}>Account</Text>
+          <View style={s.menuCard}>
+            <MenuRow
+              icon="edit"
+              label="Edit Profile"
+              subtitle="Update your name and password"
+              iconBg="#FFF2EE"
+              iconColor={C.primary}
+              onPress={() => navigation.navigate('EditProfile')}
+            />
+            <View style={s.divider} />
+            <MenuRow
+              icon="receipt-long"
+              label="Payment History"
+              subtitle="View all your past payments"
+              iconBg="#F0FDF4"
+              iconColor="#22C55E"
+              onPress={() => navigation.navigate('PaymentHistory')}
+            />
+            <View style={s.divider} />
+            <MenuRow
+              icon="local-shipping"
+              label="My Deliveries"
+              subtitle="Track your active orders"
+              iconBg="#EFF6FF"
+              iconColor="#3B82F6"
+              onPress={() => navigation.navigate('DeliveryHistory')}
+            />
+          </View>
+        </View>
+
+        {/* ── Admin section ── */}
+        {user.isAdmin && (
+          <View style={s.section}>
+            <Text style={s.sectionHeader}>Administration</Text>
+            <View style={[s.menuCard, { borderLeftWidth: 3, borderLeftColor: C.primary }]}>
+              <MenuRow
+                icon="admin-panel-settings"
+                label="Admin Dashboard"
+                subtitle="Manage food, users & payments"
+                iconBg="#FFF2EE"
+                iconColor={C.primary}
+                onPress={() => {}}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* ── Session section ── */}
+        <View style={s.section}>
+          <Text style={s.sectionHeader}>Session</Text>
+          <View style={s.menuCard}>
+            <MenuRow
+              icon="logout"
+              label="Logout"
+              subtitle="Sign out from this device"
+              iconBg="#FFF3E0"
+              iconColor="#FF9800"
+              onPress={handleLogout}
+            />
+            <View style={s.divider} />
+            <MenuRow
+              icon="delete-outline"
+              label="Delete Account"
+              subtitle="Permanently remove your account"
+              iconBg="#FFF0F0"
+              iconColor={C.danger}
+              onPress={handleDeleteAccount}
+              danger
+            />
+          </View>
+        </View>
+
+        <Text style={s.versionText}>Smart Food Ordering · v1.0.0</Text>
+        <View style={{ height: 32 }} />
+
+      </ScrollView>
+
+      {loading && (
+        <View style={s.loadingOverlay}>
+          <ActivityIndicator size="large" color={C.primary} />
+        </View>
+      )}
+    </SafeAreaView>
   );
-};
+}
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: C.bg },
-  topBar: {
-    backgroundColor: C.bg,
-    paddingTop: Platform.OS === 'ios' ? 10 : (StatusBar.currentHeight || 24) + 10,
-    paddingBottom: 16,
+  safe: { flex: 1, backgroundColor: C.bg },
+
+  // Hero
+  heroSection: {
+    backgroundColor: C.primary,
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 20 : (StatusBar.currentHeight || 24) + 20,
+    paddingBottom: 36,
     paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
   },
-  topBarTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: C.textDark,
-    letterSpacing: -0.5,
+  avatarWrap: {
+    width: 88, height: 88, borderRadius: 44,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 3, borderColor: 'rgba(255,255,255,0.5)',
+    justifyContent: 'center', alignItems: 'center',
+    marginBottom: 14,
   },
-  container: {
-    padding: 24,
-  },
-  headerCard: {
-    backgroundColor: C.surface,
-    borderRadius: 24,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.03,
-    shadowRadius: 20,
-    elevation: 4,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FFF0ED',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: C.primary,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: C.textDark,
-    marginBottom: 4,
-    letterSpacing: -0.5,
-  },
-  email: {
-    fontSize: 14,
-    color: C.textMuted,
-    marginBottom: 12,
-  },
-  adminBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  adminText: {
-    color: C.success,
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+  avatarText:  { fontSize: 36, fontWeight: '900', color: '#fff' },
+  heroName:    { fontSize: 22, fontWeight: '900', color: '#fff', marginBottom: 4 },
+  heroEmail:   { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginBottom: 14 },
+  adminPill:   { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 },
+  adminPillText: { color: C.primary, fontWeight: '800', fontSize: 12 },
+  userPill:    { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 },
+  userPillText:  { color: '#fff', fontWeight: '700', fontSize: 12 },
 
-  actionsCard: {
-    backgroundColor: C.surface,
-    borderRadius: 24,
+  // Stats strip
+  statsRow: {
+    flexDirection: 'row', backgroundColor: C.surface,
+    marginHorizontal: 20, marginTop: -18,
+    borderRadius: 20, padding: 20,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08, shadowRadius: 12, elevation: 5,
+    marginBottom: 8,
+  },
+  statBox:     { flex: 1, alignItems: 'center', gap: 6 },
+  statLabel:   { fontSize: 12, fontWeight: '700', color: C.textMuted },
+  statDivider: { width: 1, backgroundColor: C.border },
+
+  // Sections
+  section:       { paddingHorizontal: 20, marginTop: 20 },
+  sectionHeader: { fontSize: 13, fontWeight: '800', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
+
+  menuCard: {
+    backgroundColor: C.surface, borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.03,
-    shadowRadius: 16,
-    elevation: 3,
-    marginBottom: 24,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 20,
-  },
-  btnContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  btnText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: C.textDark,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginLeft: 56,
-  },
+  menuRow:  { flexDirection: 'row', alignItems: 'center', padding: 18, gap: 14 },
+  menuIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  menuBody: { flex: 1 },
+  menuLabel:{ fontSize: 15, fontWeight: '700', color: C.textDark, marginBottom: 2 },
+  menuSub:  { fontSize: 12, color: C.textMuted },
+  divider:  { height: 1, backgroundColor: C.border, marginLeft: 72 },
 
-  deleteBtn: {
-    flexDirection: 'row',
-    backgroundColor: C.dangerBg,
-    borderRadius: 16,
-    paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  deleteBtnText: {
-    color: C.danger,
-    fontSize: 16,
-    fontWeight: '700',
-  },
+  versionText:    { textAlign: 'center', fontSize: 12, color: C.textMuted, marginTop: 24 },
+  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.7)', justifyContent: 'center', alignItems: 'center' },
 });
-
-export default ProfileScreen;
