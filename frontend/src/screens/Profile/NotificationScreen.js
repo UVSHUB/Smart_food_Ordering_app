@@ -40,14 +40,14 @@ export default function NotificationScreen({ navigation }) {
         <View style={[s.iconCircle, { backgroundColor: meta.bg }]}>
           <MaterialIcons name={meta.name} size={22} color={meta.color} />
         </View>
-        <div style={s.content}>
+        <View style={s.content}>
           <View style={s.row}>
             <Text style={[s.title, !item.read && s.titleUnread]}>{item.title}</Text>
             {!item.read && <View style={s.unreadDot} />}
           </View>
           <Text style={s.body}>{item.body}</Text>
           <Text style={s.time}>{new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-        </div>
+        </View>
       </TouchableOpacity>
     );
   };
