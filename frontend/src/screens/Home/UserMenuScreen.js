@@ -43,7 +43,7 @@ const UserMenuScreen = ({ navigation }) => {
     try {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
-      const response = await axios.get(BASE_URL);
+      const response = await axios.get(`${BASE_URL}/foods`);
       setFoods(response.data);
     } catch (err) {
       console.log('Error fetching menu:', err);
