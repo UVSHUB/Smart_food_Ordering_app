@@ -47,35 +47,50 @@ export default function ProfileScreen({ navigation }) {
   const initial = (user.name || 'U')[0].toUpperCase();
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', style: 'destructive', onPress: logout },
-    ]);
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to logout?')) {
+        logout();
+      }
+    } else {
+      Alert.alert('Logout', 'Are you sure you want to logout?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: logout },
+      ]);
+    }
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'This action is permanent and cannot be undone. Are you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await axios.delete(`${BASE_URL}/users/${user._id}`);
-              logout();
-            } catch {
-              Alert.alert('Error', 'Failed to delete account.');
-            } finally {
-              setLoading(false);
-            }
+    const performDelete = async () => {
+      try {
+        setLoading(true);
+        await axios.delete(`${BASE_URL}/users/${user._id}`);
+        logout();
+      } catch {
+        if (Platform.OS === 'web') window.alert('Failed to delete account.');
+        else Alert.alert('Error', 'Failed to delete account.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('This action is permanent and cannot be undone. Are you sure you want to delete your account?')) {
+        performDelete();
+      }
+    } else {
+      Alert.alert(
+        'Delete Account',
+        'This action is permanent and cannot be undone. Are you sure?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: performDelete,
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   return (
