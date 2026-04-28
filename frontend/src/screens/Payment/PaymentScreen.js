@@ -315,14 +315,12 @@ const s = StyleSheet.create({
   itemPrice: { fontSize: 14, fontWeight: '700', color: C.textDark },
   divider:   { height: 1, backgroundColor: C.border, marginVertical: 10 },
 
-    shadowRadius: 8,
-    elevation: 2,
-  },
+
   addrScroll: { paddingBottom: 12, gap: 10 },
   addrChip: { 
     flexDirection: 'row', alignItems: 'center', gap: 6, 
     backgroundColor: C.surface, paddingHorizontal: 16, paddingVertical: 10, 
-    borderRadius: 12, borderWidh: 1, borderColor: C.border 
+    borderRadius: 12, borderWidth: 1, borderColor: C.border 
   },
   addrChipActive: { backgroundColor: C.primary, borderColor: C.primary },
   addrChipText: { fontSize: 13, fontWeight: '700', color: C.textMid },
