@@ -31,6 +31,12 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
+    if (!passwordRegex.test(password)) {
+      Alert.alert('Weak Password', 'Password must be at least 6 characters long and include at least one letter and one number.');
+      return;
+    }
+
     setLoading(true);
     const result = await register(name, email, password, isAdmin);
     setLoading(false);

@@ -54,8 +54,13 @@ export default function CreateDeliveryScreen({ navigation }) {
   const handleCreate = async () => {
     if (!orderId.trim()) return Alert.alert('Required', 'Please enter an Order ID.');
     if (!userId.trim())  return Alert.alert('Required', 'Please enter a User ID.');
-    if (!address.trim()) return Alert.alert('Required', 'Please enter the delivery address.');
+    if (!address.trim()) return Alert.alert('Required', 'Please enter a delivery address.');
     if (!phone.trim())   return Alert.alert('Required', 'Please enter a phone number.');
+    
+    const phoneRegex = /^(0\d{9})$/;
+    if (!phoneRegex.test(phone.trim())) {
+      return Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number starting with 0 (e.g. 0712345678).');
+    }
 
     setLoading(true);
     try {

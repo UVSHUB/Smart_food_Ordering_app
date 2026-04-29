@@ -56,8 +56,13 @@ export default function UpdateDeliveryScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleUpdate = async () => {
-    if (!address.trim()) return Alert.alert('Required', 'Delivery address cannot be empty.');
+    if (!address.trim()) return Alert.alert('Required', 'Address cannot be empty.');
     if (!phone.trim())   return Alert.alert('Required', 'Phone number cannot be empty.');
+
+    const phoneRegex = /^(0\d{9})$/;
+    if (!phoneRegex.test(phone.trim())) {
+      return Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number starting with 0 (e.g. 0712345678).');
+    }
 
     setLoading(true);
     try {

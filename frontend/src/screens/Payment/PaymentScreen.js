@@ -61,6 +61,11 @@ const PaymentScreen = ({ navigation, route }) => {
       Alert.alert('Missing Phone', 'Please enter your phone number.');
       return;
     }
+    const phoneRegex = /^(0\d{9})$/;
+    if (!phoneRegex.test(phone.trim())) {
+      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number starting with 0 (e.g. 0712345678).');
+      return;
+    }
 
     try {
       setLoading(true);
