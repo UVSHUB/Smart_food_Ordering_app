@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity,
-  Image, StatusBar, Platform, Alert
+  Image, StatusBar, Platform, Alert, TextInput
 } from 'react-native';
 import { useCart } from '../../context/CartContext';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -13,6 +13,7 @@ const C = {
   surface:   '#FFFFFF',
   textDark:  '#1A1A1A',
   textMuted: '#9A9A9D',
+  textLight: '#D1D5DB',
   danger:    '#FF4B4B',
   border:    '#E8E8E8',
 };
