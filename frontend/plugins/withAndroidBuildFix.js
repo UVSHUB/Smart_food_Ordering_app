@@ -7,8 +7,8 @@ const { withAppBuildGradle } = require('@expo/config-plugins');
 const withAndroidBuildFix = (config) => {
   return withAppBuildGradle(config, (mod) => {
     let contents = mod.modResults.contents;
-    // Remove enableBundleCompression line (it was removed in RN 0.73+)
-    contents = contents.replace(/\s*enableBundleCompression\s*=\s*(true|false)\r?\n/g, '\n');
+    // Remove enableBundleCompression line in any form (Groovy DSL)
+    contents = contents.replace(/[^\n]*enableBundleCompression[^\n]*\n/g, '');
     mod.modResults.contents = contents;
     return mod;
   });
