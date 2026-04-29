@@ -37,6 +37,7 @@ const AddFoodScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('Meals');
+  const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
