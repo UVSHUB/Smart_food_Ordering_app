@@ -80,7 +80,6 @@ const PaymentHistoryScreen = ({ navigation }) => {
               </Text>
             </View>
           </View>
-          </View>
           {item.order_status !== 'Cancelled' && (
             <TouchableOpacity
               style={s.trackBtn}
