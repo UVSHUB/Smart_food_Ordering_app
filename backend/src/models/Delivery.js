@@ -23,7 +23,7 @@ const deliverySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Preparing', 'Out for Delivery', 'Delivered'],
+      enum: ['Pending', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'],
       default: 'Pending',
     },
   },

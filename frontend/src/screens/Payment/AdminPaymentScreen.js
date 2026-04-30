@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, StatusBar, Platform
+  ActivityIndicator, Alert, StatusBar, Platform, Modal, TextInput
 } from 'react-native';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -27,6 +27,11 @@ const METHOD_ICONS = { Cash: 'payments', Card: 'credit-card', Online: 'phone-and
 const AdminPaymentScreen = ({ navigation }) => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Cancel Modal State
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [cancelMessage, setCancelMessage] = useState('');
+  const [selectedPaymentId, setSelectedPaymentId] = useState(null);
 
   const fetchPayments = async () => {
     try {
@@ -65,6 +70,10 @@ const AdminPaymentScreen = ({ navigation }) => {
   };
 
   const handleUpdateOrderStatus = async (id, currentStatus) => {
+    if (currentStatus === 'Cancelled') {
+      Alert.alert('Cancelled', 'This order is cancelled and cannot be updated.');
+      return;
+    }
     const nextStatusMap = {
       'Pending': 'Preparing',
       'Preparing': 'Delivered',
@@ -80,19 +89,43 @@ const AdminPaymentScreen = ({ navigation }) => {
     }
   };
 
+  const openCancelModal = (id) => {
+    setSelectedPaymentId(id);
+    setCancelMessage('');
+    setCancelModalVisible(true);
+  };
+
+  const handleCancelOrder = async () => {
+    if (!cancelMessage.trim()) {
+      Alert.alert('Required', 'Please provide a cancellation reason.');
+      return;
+    }
+    try {
+      const { data } = await axios.put(`${BASE_URL}/payments/${selectedPaymentId}/cancel`, {
+        cancellation_reason: cancelMessage.trim()
+      });
+      setPayments((prev) => prev.map((p) => (p._id === selectedPaymentId ? data : p)));
+      setCancelModalVisible(false);
+      Alert.alert('Success', 'Order has been cancelled.');
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.message || 'Failed to cancel order.');
+    }
+  };
+
   const renderItem = ({ item }) => {
     const isPaid = item.status === 'Paid';
+    const isCancelled = item.order_status === 'Cancelled';
     const date = new Date(item.createdAt).toLocaleDateString('en-US', {
       month: 'short', day: 'numeric', year: 'numeric',
     });
 
     return (
       <View style={s.card}>
-        <View style={[s.iconBox, { backgroundColor: isPaid ? '#F0FDF4' : '#FFFBEB' }]}>
+        <View style={[s.iconBox, { backgroundColor: isCancelled ? C.dangerBg : (isPaid ? '#F0FDF4' : '#FFFBEB') }]}>
           <MaterialIcons
-            name={METHOD_ICONS[item.payment_method] || 'receipt'}
+            name={isCancelled ? 'cancel' : (METHOD_ICONS[item.payment_method] || 'receipt')}
             size={22}
-            color={isPaid ? C.success : C.pending}
+            color={isCancelled ? C.danger : (isPaid ? C.success : C.pending)}
           />
         </View>
 
@@ -102,37 +135,48 @@ const AdminPaymentScreen = ({ navigation }) => {
           
           <View style={s.badgeRow}>
             {/* Payment Status Badge */}
-            <View style={[s.badge, { backgroundColor: isPaid ? '#F0FDF4' : '#FFFBEB' }]}>
-              <Text style={[s.badgeText, { color: isPaid ? C.success : C.pending }]}>{item.status}</Text>
+            <View style={[s.badge, { backgroundColor: isCancelled ? C.dangerBg : (isPaid ? '#F0FDF4' : '#FFFBEB') }]}>
+              <Text style={[s.badgeText, { color: isCancelled ? C.danger : (isPaid ? C.success : C.pending) }]}>
+                {isCancelled ? 'Cancelled' : item.status}
+              </Text>
             </View>
 
             {/* Order Status Badge (Actionable) */}
-            <TouchableOpacity 
-              onPress={() => handleUpdateOrderStatus(item._id, item.order_status)}
-              style={[s.statusUpdateBtn, { 
-                backgroundColor: item.order_status === 'Delivered' ? '#F0FDF4' : (item.order_status === 'Preparing' ? '#EFF6FF' : '#FFFBEB') 
-              }]}
-            >
-              <MaterialIcons 
-                name={item.order_status === 'Delivered' ? 'check-circle' : (item.order_status === 'Preparing' ? 'restaurant' : 'schedule')} 
-                size={14} 
-                color={item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending)} 
-                style={{ marginRight: 4 }}
-              />
-              <Text style={[s.badgeText, { 
-                color: item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending) 
-              }]}>
-                {item.order_status || 'Pending'}
-              </Text>
-            </TouchableOpacity>
+            {!isCancelled && (
+              <TouchableOpacity 
+                onPress={() => handleUpdateOrderStatus(item._id, item.order_status)}
+                style={[s.statusUpdateBtn, { 
+                  backgroundColor: item.order_status === 'Delivered' ? '#F0FDF4' : (item.order_status === 'Preparing' ? '#EFF6FF' : '#FFFBEB') 
+                }]}
+              >
+                <MaterialIcons 
+                  name={item.order_status === 'Delivered' ? 'check-circle' : (item.order_status === 'Preparing' ? 'restaurant' : 'schedule')} 
+                  size={14} 
+                  color={item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending)} 
+                  style={{ marginRight: 4 }}
+                />
+                <Text style={[s.badgeText, { 
+                  color: item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending) 
+                }]}>
+                  {item.order_status || 'Pending'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
         <View style={{ alignItems: 'flex-end', gap: 8 }}>
           <Text style={s.amount}>Rs. {(item.amount || 0).toFixed(2)}</Text>
-          <TouchableOpacity onPress={() => handleDelete(item._id, item.amount)} style={s.deleteBtn}>
-            <MaterialIcons name="delete-outline" size={20} color={C.danger} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
+            {!isCancelled && (
+              <TouchableOpacity onPress={() => openCancelModal(item._id)} style={s.actionIconBtn}>
+                <MaterialIcons name="cancel" size={22} color={C.danger} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => handleDelete(item._id, item.amount)} style={s.actionIconBtn}>
+              <MaterialIcons name="delete-outline" size={22} color={C.textMuted} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -198,6 +242,38 @@ const AdminPaymentScreen = ({ navigation }) => {
           }
         />
       )}
+
+      {/* Cancel Order Modal */}
+      <Modal
+        visible={cancelModalVisible}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <Text style={s.modalTitle}>Cancel Order</Text>
+            <Text style={s.modalSubtitle}>Provide a reason for cancelling this order. This message will be shown to the user.</Text>
+            
+            <TextInput
+              style={s.modalInput}
+              placeholder="e.g. Items out of stock..."
+              placeholderTextColor={C.textMuted}
+              value={cancelMessage}
+              onChangeText={setCancelMessage}
+              multiline
+            />
+            
+            <View style={s.modalActions}>
+              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setCancelModalVisible(false)}>
+                <Text style={s.modalCancelText}>Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.modalConfirmBtn} onPress={handleCancelOrder}>
+                <Text style={s.modalConfirmText}>Cancel Order</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -273,10 +349,61 @@ const s = StyleSheet.create({
   },
   badgeText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
   amount: { fontSize: 15, fontWeight: '800', color: C.textDark },
-  deleteBtn: { padding: 4 },
+  actionIconBtn: { padding: 4 },
 
   empty: { alignItems: 'center', marginTop: 80 },
   emptyText: { fontSize: 16, color: C.textMuted, fontWeight: '600', marginTop: 16 },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: C.surface,
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: C.textDark, marginBottom: 8 },
+  modalSubtitle: { fontSize: 13, color: C.textMuted, marginBottom: 20, lineHeight: 18 },
+  modalInput: {
+    backgroundColor: C.bg,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 14,
+    color: C.textDark,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: C.border,
+    marginBottom: 24,
+  },
+  modalActions: { flexDirection: 'row', gap: 12 },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+  },
+  modalCancelText: { fontSize: 14, fontWeight: '700', color: C.textDark },
+  modalConfirmBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: C.danger,
+  },
+  modalConfirmText: { fontSize: 14, fontWeight: '700', color: '#fff' },
 });
 
 export default AdminPaymentScreen;

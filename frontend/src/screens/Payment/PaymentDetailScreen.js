@@ -29,6 +29,7 @@ const PaymentDetailScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const isPaid = payment.status === 'Paid';
+  const isCancelled = payment.order_status === 'Cancelled';
 
   const handleMarkPaid = async () => {
     if (isPaid) {
@@ -59,6 +60,32 @@ const PaymentDetailScreen = ({ route, navigation }) => {
     );
   };
 
+  const handleCancelOrder = () => {
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure you want to cancel this order?',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const { data } = await axios.put(`${BASE_URL}/payments/${payment._id}/cancel`, { cancellation_reason: 'Cancelled by user' });
+              setPayment(data);
+              Alert.alert('Cancelled', 'Your order has been cancelled.');
+            } catch (err) {
+              Alert.alert('Error', err.response?.data?.message || 'Failed to cancel order.');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const date = new Date(payment.createdAt).toLocaleString('en-US', {
     month: 'long', day: 'numeric', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
@@ -77,50 +104,62 @@ const PaymentDetailScreen = ({ route, navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        {isCancelled && (
+          <View style={s.cancelledBanner}>
+            <MaterialIcons name="cancel" size={24} color={C.danger} style={{ marginRight: 8 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={s.cancelledTitle}>Order Cancelled</Text>
+              <Text style={s.cancelledReason}>{payment.cancellation_reason || 'Cancelled by admin'}</Text>
+            </View>
+          </View>
+        )}
+
         {/* Status Hero */}
-        <View style={[s.heroCard, { backgroundColor: isPaid ? C.success : C.pending }]}>
+        <View style={[s.heroCard, { backgroundColor: isCancelled ? C.danger : (isPaid ? C.success : C.pending) }]}>
           <MaterialIcons
-            name={isPaid ? 'check-circle' : 'access-time'}
+            name={isCancelled ? 'cancel' : (isPaid ? 'check-circle' : 'access-time')}
             size={48} color="#fff"
             style={{ marginBottom: 12 }}
           />
-          <Text style={s.heroStatus}>{payment.status}</Text>
+          <Text style={s.heroStatus}>{isCancelled ? 'Cancelled' : payment.status}</Text>
           <Text style={s.heroAmount}>Rs. {(payment.amount || 0).toFixed(2)}</Text>
           <Text style={s.heroDate}>{date}</Text>
         </View>
 
         {/* Order Progress Tracker */}
-        <View style={s.trackerCard}>
-          <Text style={s.trackerTitle}>Order Progress</Text>
-          <View style={s.trackerContainer}>
-            {/* Step 1: Pending */}
-            <TrackerStep 
-              icon="receipt-long" 
-              label="Received" 
-              active={['Pending', 'Preparing', 'Delivered'].includes(payment.order_status || 'Pending')} 
-              completed={['Preparing', 'Delivered'].includes(payment.order_status)}
-            />
-            <TrackerLine active={['Preparing', 'Delivered'].includes(payment.order_status)} />
-            
-            {/* Step 2: Preparing */}
-            <TrackerStep 
-              icon="restaurant" 
-              label="Kitchen" 
-              active={['Preparing', 'Delivered'].includes(payment.order_status)} 
-              completed={['Delivered'].includes(payment.order_status)}
-            />
-            <TrackerLine active={['Delivered'].includes(payment.order_status)} />
-            
-            {/* Step 3: Delivered */}
-            <TrackerStep 
-              icon="verified" 
-              label="Delivered" 
-              active={['Delivered'].includes(payment.order_status)} 
-              completed={false}
-              isLast
-            />
+        {!isCancelled && (
+          <View style={s.trackerCard}>
+            <Text style={s.trackerTitle}>Order Progress</Text>
+            <View style={s.trackerContainer}>
+              {/* Step 1: Pending */}
+              <TrackerStep 
+                icon="receipt-long" 
+                label="Received" 
+                active={['Pending', 'Preparing', 'Delivered'].includes(payment.order_status || 'Pending')} 
+                completed={['Preparing', 'Delivered'].includes(payment.order_status)}
+              />
+              <TrackerLine active={['Preparing', 'Delivered'].includes(payment.order_status)} />
+              
+              {/* Step 2: Preparing */}
+              <TrackerStep 
+                icon="restaurant" 
+                label="Kitchen" 
+                active={['Preparing', 'Delivered'].includes(payment.order_status)} 
+                completed={['Delivered'].includes(payment.order_status)}
+              />
+              <TrackerLine active={['Delivered'].includes(payment.order_status)} />
+              
+              {/* Step 3: Delivered */}
+              <TrackerStep 
+                icon="verified" 
+                label="Delivered" 
+                active={['Delivered'].includes(payment.order_status)} 
+                completed={false}
+                isLast
+              />
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Detail Rows */}
         <View style={s.detailCard}>
@@ -131,10 +170,10 @@ const PaymentDetailScreen = ({ route, navigation }) => {
           <DetailRow icon="restaurant" label="Order Status" value={payment.order_status || 'Pending'} last />
         </View>
 
-        {/* Action Button */}
-        {!isPaid && (
+        {/* Action Buttons */}
+        {!isPaid && !isCancelled && (
           <TouchableOpacity
-            style={[s.actionBtn, loading && { opacity: 0.7 }]}
+            style={[s.actionBtn, loading && { opacity: 0.7 }, { marginBottom: 16 }]}
             onPress={handleMarkPaid}
             disabled={loading}
             activeOpacity={0.85}
@@ -150,7 +189,25 @@ const PaymentDetailScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         )}
 
-        {isPaid && (
+        {payment.order_status === 'Pending' && !isCancelled && (
+          <TouchableOpacity
+            style={[s.actionBtn, { backgroundColor: C.dangerBg, shadowColor: C.danger }, loading && { opacity: 0.7 }]}
+            onPress={handleCancelOrder}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color={C.danger} />
+            ) : (
+              <>
+                <MaterialIcons name="cancel" size={20} color={C.danger} style={{ marginRight: 8 }} />
+                <Text style={[s.actionText, { color: C.danger }]}>Cancel Order</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {isPaid && !isCancelled && (
           <View style={s.paidBadge}>
             <MaterialIcons name="verified" size={20} color={C.success} style={{ marginRight: 8 }} />
             <Text style={s.paidBadgeText}>This payment is completed</Text>
@@ -233,6 +290,19 @@ const s = StyleSheet.create({
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
   topBarTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
   scroll: { padding: 20 },
+
+  cancelledBanner: {
+    backgroundColor: C.dangerBg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 75, 75, 0.3)',
+  },
+  cancelledTitle: { fontSize: 15, fontWeight: '800', color: C.danger, marginBottom: 4 },
+  cancelledReason: { fontSize: 13, color: C.danger, opacity: 0.8 },
 
   heroCard: {
     borderRadius: 24,

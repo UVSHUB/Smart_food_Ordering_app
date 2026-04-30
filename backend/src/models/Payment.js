@@ -28,8 +28,12 @@ const paymentSchema = new mongoose.Schema(
     },
     order_status: {
       type: String,
-      enum: ['Pending', 'Preparing', 'Delivered'],
+      enum: ['Pending', 'Preparing', 'Delivered', 'Cancelled'],
       default: 'Pending',
+    },
+    cancellation_reason: {
+      type: String,
+      default: '',
     },
     // Delivery details captured at checkout
     address: {

@@ -138,11 +138,44 @@ const deletePayment = async (req, res) => {
   }
 };
 
+// ── PUT /api/payments/:id/cancel ─────────────────────────────
+// Cancel payment/order
+const cancelPayment = async (req, res) => {
+  try {
+    const { cancellation_reason } = req.body;
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment not found.' });
+    }
+
+    if (payment.order_status === 'Cancelled') {
+      return res.status(400).json({ message: 'Payment is already cancelled.' });
+    }
+
+    payment.order_status = 'Cancelled';
+    payment.status = 'Cancelled';
+    payment.cancellation_reason = cancellation_reason || 'Cancelled by user';
+    const updated = await payment.save();
+
+    // Cancel associated delivery
+    const delivery = await Delivery.findOne({ order_id: payment._id.toString() });
+    if (delivery) {
+      delivery.status = 'Cancelled';
+      await delivery.save();
+    }
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createPayment,
   getAllPayments,
   getPaymentById,
   getUserPayments,
   updatePayment,
+  cancelPayment,
   deletePayment,
 };
