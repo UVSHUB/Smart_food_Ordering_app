@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity,
   Image, StatusBar, Platform, Alert, TextInput
@@ -20,12 +20,22 @@ const C = {
 
 const CartScreen = ({ navigation }) => {
   const { cartItems, addToCart, removeFromCart, deleteFromCart, clearCart, cartTotal, cartCount } = useCart();
+  const [promoCode, setPromoCode] = useState('');
 
   const handleClearCart = () => {
     Alert.alert('Clear Cart', 'Remove all items from your cart?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Clear', style: 'destructive', onPress: clearCart },
     ]);
+  };
+
+  const handleApplyPromo = () => {
+    const trimmedPromo = promoCode.trim();
+    if (!trimmedPromo) {
+      Alert.alert('Invalid Promo Code', 'Please enter a promo code before applying.');
+      return;
+    }
+    Alert.alert('Promo Code', `Promo code "${trimmedPromo}" applied successfully.`);
   };
 
   const renderItem = ({ item }) => {
@@ -106,9 +116,12 @@ const CartScreen = ({ navigation }) => {
                     style={s.promoInput}
                     placeholder="Enter Promo Code"
                     placeholderTextColor={C.textLight}
+                    value={promoCode}
+                    onChangeText={setPromoCode}
+                    autoCapitalize="characters"
                   />
                 </View>
-                <TouchableOpacity style={s.applyBtn}>
+                <TouchableOpacity style={s.applyBtn} onPress={handleApplyPromo}>
                   <Text style={s.applyText}>Apply</Text>
                 </TouchableOpacity>
               </View>

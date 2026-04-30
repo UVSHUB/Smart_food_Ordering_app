@@ -8,6 +8,22 @@ const registerUser = async (req, res, next) => {
   try {
     const { name, email, password, isAdmin } = req.body;
 
+    if (!name || name.trim().length < 2) {
+      res.status(400);
+      throw new Error('Name must be at least 2 characters long');
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      res.status(400);
+      throw new Error('Please enter a valid email address');
+    }
+
+    if (!password || password.length < 6) {
+      res.status(400);
+      throw new Error('Password must be at least 6 characters long');
+    }
+
     const userExists = await User.findOne({ email });
 
     if (userExists) {

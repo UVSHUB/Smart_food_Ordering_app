@@ -26,8 +26,22 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name || !email || !password) {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName || !trimmedEmail || !password) {
       Alert.alert('Missing Fields', 'Please fill out all fields.');
+      return;
+    }
+
+    if (trimmedName.length < 2) {
+      Alert.alert('Invalid Name', 'Name must be at least 2 characters long.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
 
@@ -38,7 +52,7 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     setLoading(true);
-    const result = await register(name, email, password, isAdmin);
+    const result = await register(trimmedName, trimmedEmail, password, isAdmin);
     setLoading(false);
 
     if (!result.success) {

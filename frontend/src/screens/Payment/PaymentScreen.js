@@ -53,16 +53,24 @@ const PaymentScreen = ({ navigation, route }) => {
       Alert.alert('Invalid Amount', 'Order amount must be greater than Rs. 0.');
       return;
     }
-    if (!address.trim()) {
+    
+    const trimmedAddress = address.trim();
+    if (!trimmedAddress) {
       Alert.alert('Missing Address', 'Please enter your delivery address.');
       return;
     }
-    if (!phone.trim()) {
+    if (trimmedAddress.length < 5) {
+      Alert.alert('Invalid Address', 'Delivery address must be at least 5 characters long.');
+      return;
+    }
+    
+    const trimmedPhone = phone.trim();
+    if (!trimmedPhone) {
       Alert.alert('Missing Phone', 'Please enter your phone number.');
       return;
     }
     const phoneRegex = /^(0\d{9})$/;
-    if (!phoneRegex.test(phone.trim())) {
+    if (!phoneRegex.test(trimmedPhone)) {
       Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number starting with 0 (e.g. 0712345678).');
       return;
     }
@@ -81,8 +89,8 @@ const PaymentScreen = ({ navigation, route }) => {
         user_id:        user._id,
         amount,
         payment_method: method,
-        address:        address.trim(),
-        phone:          phone.trim(),
+        address:        trimmedAddress,
+        phone:          trimmedPhone,
         items,
       });
       
@@ -103,7 +111,7 @@ const PaymentScreen = ({ navigation, route }) => {
         items,
         amount,
         method,
-        address: address.trim(),
+        address: trimmedAddress,
       });
     } catch (err) {
       Alert.alert('Payment Failed', err.response?.data?.message || 'Network error. Check your connection and try again.');

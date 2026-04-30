@@ -13,11 +13,14 @@ const createPayment = async (req, res) => {
     if (amount <= 0) {
       return res.status(400).json({ message: 'Amount must be greater than 0.' });
     }
-    if (!address || !address.trim()) {
-      return res.status(400).json({ message: 'Delivery address is required.' });
+    if (!address || !address.trim() || address.trim().length < 5) {
+      return res.status(400).json({ message: 'A valid delivery address (at least 5 chars) is required.' });
     }
-    if (!phone || !phone.trim()) {
-      return res.status(400).json({ message: 'Phone number is required.' });
+    if (!phone || !phone.trim() || !/^(0\d{9})$/.test(phone.trim())) {
+      return res.status(400).json({ message: 'A valid 10-digit phone number is required.' });
+    }
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'Order must contain at least one item.' });
     }
 
     // 1. Create the payment record
