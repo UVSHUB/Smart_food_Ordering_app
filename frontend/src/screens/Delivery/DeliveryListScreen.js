@@ -14,6 +14,7 @@ const STATUS = {
   Preparing:          { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6', icon: 'restaurant'       },
   'Out for Delivery': { bg: '#FAF5FF', text: '#7E22CE', dot: '#A855F7', icon: 'delivery-dining'  },
   Delivered:          { bg: '#F0FDF4', text: '#15803D', dot: '#22C55E', icon: 'check-circle'     },
+  Cancelled:          { bg: '#FFF0F0', text: '#DC2626', dot: '#EF4444', icon: 'cancel'           },
 };
 
 const C = {

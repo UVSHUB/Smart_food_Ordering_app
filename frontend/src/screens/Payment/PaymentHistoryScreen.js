@@ -67,35 +67,38 @@ const PaymentHistoryScreen = ({ navigation }) => {
           <Text style={s.cardDate}>{date}</Text>
           <Text style={s.cardAmount}>Rs. {(item.amount || 0).toFixed(2)}</Text>
           <View style={s.badgeRow}>
-            <View style={[s.statusBadge, { backgroundColor: isPaid ? '#F0FDF4' : '#FFFBEB' }]}>
-              <Text style={[s.statusText, { color: isPaid ? C.success : C.pending }]}>{item.status}</Text>
+            <View style={[s.statusBadge, { backgroundColor: item.status === 'Cancelled' ? '#FFF0F0' : (isPaid ? '#F0FDF4' : '#FFFBEB') }]}>
+              <Text style={[s.statusText, { color: item.status === 'Cancelled' ? C.danger : (isPaid ? C.success : C.pending) }]}>{item.status}</Text>
             </View>
             <View style={[s.statusBadge, {
-              backgroundColor: item.order_status === 'Delivered' ? '#F0FDF4' : (item.order_status === 'Preparing' ? '#EFF6FF' : '#FFFBEB')
+              backgroundColor: item.order_status === 'Cancelled' ? '#FFF0F0' : (item.order_status === 'Delivered' ? '#F0FDF4' : (item.order_status === 'Preparing' ? '#EFF6FF' : '#FFFBEB'))
             }]}>
               <Text style={[s.statusText, {
-                color: item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending)
+                color: item.order_status === 'Cancelled' ? C.danger : (item.order_status === 'Delivered' ? C.success : (item.order_status === 'Preparing' ? '#3B82F6' : C.pending))
               }]}>
                 {item.order_status || 'Pending'}
               </Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={s.trackBtn}
-            onPress={() => {
-              // Navigate to Delivery tab — works from any stack
-              const parent = navigation.getParent();
-              if (parent) {
-                parent.navigate('DeliveryTab');
-              } else {
-                navigation.navigate('DeliveryHistory');
-              }
-            }}
-            activeOpacity={0.8}
-          >
-            <MaterialIcons name="local-shipping" size={13} color={C.primary} />
-            <Text style={s.trackBtnText}>Track Delivery</Text>
-          </TouchableOpacity>
+          </View>
+          {item.order_status !== 'Cancelled' && (
+            <TouchableOpacity
+              style={s.trackBtn}
+              onPress={() => {
+                // Navigate to Delivery tab — works from any stack
+                const parent = navigation.getParent();
+                if (parent) {
+                  parent.navigate('DeliveryTab');
+                } else {
+                  navigation.navigate('DeliveryHistory');
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="local-shipping" size={13} color={C.primary} />
+              <Text style={s.trackBtnText}>Track Delivery</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </TouchableOpacity>
     );

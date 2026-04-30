@@ -11,6 +11,7 @@ const STATUS = {
   Preparing:          { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6', icon: 'restaurant',      label: 'Being Prepared'       },
   'Out for Delivery': { bg: '#FAF5FF', text: '#7E22CE', dot: '#A855F7', icon: 'delivery-dining', label: 'Out for Delivery'     },
   Delivered:          { bg: '#F0FDF4', text: '#15803D', dot: '#22C55E', icon: 'check-circle',    label: 'Delivered'            },
+  Cancelled:          { bg: '#FFF0F0', text: '#DC2626', dot: '#EF4444', icon: 'cancel',          label: 'Order Cancelled'      },
 };
 
 const STEPS = ['Pending', 'Preparing', 'Out for Delivery', 'Delivered'];
@@ -155,7 +156,17 @@ export default function DeliveryDetailScreen({ route, navigation }) {
         {/* Progress card */}
         <View style={s.card}>
           <Text style={s.cardTitle}>Delivery Progress</Text>
-          <ProgressTracker currentStatus={delivery.status} />
+          {delivery.status === 'Cancelled' ? (
+            <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+              <MaterialIcons name="cancel" size={48} color="#EF4444" />
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#EF4444', marginTop: 12 }}>Delivery Cancelled</Text>
+              <Text style={{ fontSize: 13, color: C.textMid, marginTop: 6, textAlign: 'center' }}>
+                This delivery has been cancelled.
+              </Text>
+            </View>
+          ) : (
+            <ProgressTracker currentStatus={delivery.status} />
+          )}
         </View>
 
         {/* Details card */}
