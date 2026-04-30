@@ -34,7 +34,8 @@
           }
         }
       ],
-      "./plugins/withAndroidBuildFix"
+      "./plugins/withAndroidBuildFix",
+      "expo-font"
     ],
     "extra": {
       "eas": {
