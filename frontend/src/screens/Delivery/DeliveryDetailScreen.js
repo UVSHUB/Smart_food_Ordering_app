@@ -1,9 +1,11 @@
 import React, { useContext, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  SafeAreaView, StatusBar, Animated, Platform,
+  SafeAreaView, StatusBar, Animated, Platform, Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import axios from 'axios';
+import { BASE_URL } from '../../services/api';
 import { AuthContext } from '../../context/AuthContext';
 
 const STATUS = {
@@ -118,6 +120,29 @@ export default function DeliveryDetailScreen({ route, navigation }) {
     hour: '2-digit', minute: '2-digit',
   });
 
+  const handleCancelOrder = () => {
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure you want to cancel this order?',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await axios.put(`${BASE_URL}/payments/${delivery.order_id}/cancel`, { cancellation_reason: 'Cancelled by user' });
+              Alert.alert('Success', 'Order has been cancelled.');
+              navigation.goBack();
+            } catch (err) {
+              Alert.alert('Error', err.response?.data?.message || 'Failed to cancel order.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={meta.dot} />
@@ -189,13 +214,26 @@ export default function DeliveryDetailScreen({ route, navigation }) {
             <Text style={s.updateBtnText}>Update Status</Text>
           </TouchableOpacity>
         ) : (
-          <View style={[s.statusNote, { backgroundColor: meta.bg, borderLeftColor: meta.dot }]}>
-            <MaterialIcons name="info-outline" size={16} color={meta.dot} style={{ marginTop: 1 }} />
-            <Text style={[s.statusNoteText, { color: meta.text }]}>
-              {delivery.status === 'Delivered'
-                ? 'Your order has been delivered successfully. Thank you!'
-                : 'Your order is being processed. You will see live updates here.'}
-            </Text>
+          <View style={{ gap: 12 }}>
+            <View style={[s.statusNote, { backgroundColor: meta.bg, borderLeftColor: meta.dot }]}>
+              <MaterialIcons name="info-outline" size={16} color={meta.dot} style={{ marginTop: 1 }} />
+              <Text style={[s.statusNoteText, { color: meta.text }]}>
+                {delivery.status === 'Delivered'
+                  ? 'Your order has been delivered successfully. Thank you!'
+                  : 'Your order is being processed. You will see live updates here.'}
+              </Text>
+            </View>
+            
+            {delivery.status === 'Pending' && (
+              <TouchableOpacity
+                style={s.cancelBtn}
+                activeOpacity={0.8}
+                onPress={handleCancelOrder}
+              >
+                <MaterialIcons name="cancel" size={18} color="#EF4444" />
+                <Text style={s.cancelBtnText}>Cancel Order</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -290,6 +328,16 @@ const s = StyleSheet.create({
     borderLeftWidth: 4,
   },
   statusNoteText: { flex: 1, fontSize: 13, fontWeight: '600', lineHeight: 20 },
+  
+  // Cancel button
+  cancelBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1, borderColor: '#EF4444',
+    backgroundColor: '#FFF0F0',
+  },
+  cancelBtnText: { color: '#EF4444', fontWeight: '700', fontSize: 14 },
 });
 
 // ── Progress tracker styles ────────────────────────────────────────────────────
