@@ -116,7 +116,7 @@ const UserMenuScreen = ({ navigation }) => {
             uri: item.image
               ? item.image.startsWith('http')
                 ? item.image
-                : `${IMAGE_BASE_URL}${item.image}`
+                : `${IMAGE_BASE_URL}${item.image.startsWith('/') ? '' : '/'}${item.image}`
               : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
           }}
           style={s.gridImage}

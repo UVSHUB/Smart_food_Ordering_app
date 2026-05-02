@@ -233,7 +233,7 @@ const FoodDetailScreen = ({ route, navigation }) => {
 
   const imageUri = food.image && food.image.startsWith('http')
     ? food.image
-    : `${IMAGE_BASE_URL}${food.image || '/images/sample-food.jpg'}`;
+    : `${IMAGE_BASE_URL}${food.image ? (food.image.startsWith('/') ? '' : '/') + food.image : '/images/sample-food.jpg'}`;
 
   return (
     <View style={s.safeArea}>

@@ -187,7 +187,7 @@ const EditFoodScreen = ({ route, navigation }) => {
                 <Image 
                   source={{ 
                     uri: typeof image === 'string' 
-                      ? (image.startsWith('http') ? image : `${IMAGE_BASE_URL}${image}`) 
+                      ? (image.startsWith('http') ? image : `${IMAGE_BASE_URL}${image.startsWith('/') ? '' : '/'}${image}`) 
                       : image.uri 
                   }} 
                   style={s.imagePreview} 

@@ -41,7 +41,7 @@ const CartScreen = ({ navigation }) => {
   const renderItem = ({ item }) => {
     const imageUri = item.image && item.image.startsWith('http')
       ? item.image
-      : `${IMAGE_BASE_URL}${item.image || ''}`;
+      : `${IMAGE_BASE_URL}${item.image ? (item.image.startsWith('/') ? '' : '/') + item.image : ''}`;
 
     return (
       <View style={s.card}>
