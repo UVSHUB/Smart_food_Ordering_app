@@ -22,8 +22,10 @@ const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
+
 
   const handleRegister = async () => {
     const trimmedName = name.trim();
@@ -51,9 +53,20 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
+    const trimmedPhone = phone.trim();
+    if (trimmedPhone) {
+      const phoneRegex = /^(0\d{9})$/;
+      if (!phoneRegex.test(trimmedPhone)) {
+        Alert.alert('Invalid Phone', 'Please enter a valid 10-digit Sri Lankan phone number starting with 0 (e.g. 0771234567).');
+        return;
+      }
+    }
+
+
     setLoading(true);
-    const result = await register(trimmedName, trimmedEmail, password, isAdmin);
+    const result = await register(trimmedName, trimmedEmail, password, isAdmin, trimmedPhone);
     setLoading(false);
+
 
     if (!result.success) {
       Alert.alert('Registration Failed', result.message);
@@ -116,6 +129,19 @@ const RegisterScreen = ({ navigation }) => {
               autoCorrect={false}
             />
           </View>
+
+          <View style={s.field}>
+            <Text style={s.label}>Phone Number (Optional)</Text>
+            <TextInput
+              style={s.input}
+              placeholder="e.g. 0771234567"
+              placeholderTextColor={C.textMuted}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+            />
+          </View>
+
 
           <View style={[s.field, s.switchRow]}>
             <View>

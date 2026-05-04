@@ -11,6 +11,8 @@ import { useAddresses } from '../../context/AddressContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../../services/api';
+import MapPickerModal from '../../components/MapPickerModal';
+
 
 const C = {
   primary:   '#FA4A0C',
@@ -43,6 +45,8 @@ const PaymentScreen = ({ navigation, route }) => {
   const [address, setAddress] = useState('');
   const [phone,   setPhone]   = useState('');
   const [loading, setLoading] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
+
 
   const handleConfirmPayment = async () => {
     if (!user?._id) {
@@ -69,11 +73,13 @@ const PaymentScreen = ({ navigation, route }) => {
       Alert.alert('Missing Phone', 'Please enter your phone number.');
       return;
     }
+    // Sri Lankan phone validation: 10 digits starting with 0
     const phoneRegex = /^(0\d{9})$/;
     if (!phoneRegex.test(trimmedPhone)) {
-      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number starting with 0 (e.g. 0712345678).');
+      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit Sri Lankan phone number starting with 0 (e.g. 0771234567).');
       return;
     }
+
 
     try {
       setLoading(true);
@@ -203,19 +209,30 @@ const PaymentScreen = ({ navigation, route }) => {
           )}
 
           <View style={s.formCard}>
-            <View style={s.inputRow}>
-              <View style={s.inputIcon}>
-                <MaterialIcons name="location-on" size={20} color={C.primary} />
+            <View style={{ position: 'relative' }}>
+              <View style={s.inputRow}>
+                <View style={s.inputIcon}>
+                  <MaterialIcons name="location-on" size={20} color={C.primary} />
+                </View>
+                <TextInput
+                  style={s.input}
+                  placeholder="Delivery address (street, city)"
+                  placeholderTextColor={C.textMuted}
+                  value={address}
+                  onChangeText={setAddress}
+                  multiline
+                />
               </View>
-              <TextInput
-                style={s.input}
-                placeholder="Delivery address (street, city)"
-                placeholderTextColor={C.textMuted}
-                value={address}
-                onChangeText={setAddress}
-                multiline
-              />
+              <TouchableOpacity 
+                style={s.mapPickerBtn} 
+                onPress={() => setMapVisible(true)}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="map" size={16} color={C.primary} />
+                <Text style={s.mapPickerBtnText}>Select on Map</Text>
+              </TouchableOpacity>
             </View>
+
 
             <View style={[s.inputRow, { marginTop: 12 }]}>
               <View style={s.inputIcon}>
@@ -253,6 +270,13 @@ const PaymentScreen = ({ navigation, route }) => {
 
           <View style={{ height: 120 }} />
         </ScrollView>
+
+        <MapPickerModal
+          visible={mapVisible}
+          onClose={() => setMapVisible(false)}
+          onLocationSelect={(addr) => setAddress(addr)}
+        />
+
 
         {/* Confirm Button */}
         <View style={s.footer}>
@@ -415,6 +439,23 @@ const s = StyleSheet.create({
     elevation: 8,
   },
   confirmText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+
+  // Map Picker Button
+  mapPickerBtn: {
+    position: 'absolute',
+    right: 0,
+    top: -24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 4,
+  },
+  mapPickerBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.primary,
+  },
 });
+
 
 export default PaymentScreen;

@@ -10,7 +10,7 @@ const client = new OAuth2Client(process.env.GOOGLE_WEB_CLIENT_ID);
 // @access  Public
 const registerUser = async (req, res, next) => {
   try {
-    const { name, email, password, isAdmin } = req.body;
+    const { name, email, password, isAdmin, phone } = req.body;
 
     if (!name || name.trim().length < 2) {
       res.status(400);
@@ -28,6 +28,15 @@ const registerUser = async (req, res, next) => {
       throw new Error('Password must be at least 6 characters long');
     }
 
+    if (phone) {
+      const phoneRegex = /^(0\d{9})$/;
+      if (!phoneRegex.test(phone)) {
+        res.status(400);
+        throw new Error('Please enter a valid 10-digit Sri Lankan phone number starting with 0');
+      }
+    }
+
+
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -40,7 +49,9 @@ const registerUser = async (req, res, next) => {
       email,
       password,
       isAdmin: isAdmin === true ? true : false,
+      phone: phone || '',
     });
+
 
     if (user) {
       res.status(201).json({
@@ -49,6 +60,7 @@ const registerUser = async (req, res, next) => {
         name: user.name,
         email: user.email,
         isAdmin: user.isAdmin,
+        phone: user.phone,
         token: generateToken(user._id),
       });
     } else {
