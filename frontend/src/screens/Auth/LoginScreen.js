@@ -1,10 +1,11 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, ActivityIndicator, StatusBar, Alert, Image
 } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 // ── Ultra Premium Modern Palette ──────────────────────
 const C = {
@@ -14,14 +15,23 @@ const C = {
   textDark:    '#1A1A1A', 
   textMuted:   '#9A9A9D', 
   border:      '#E8E8E8',
+  google:      '#4285F4',
 };
 
 const LoginScreen = ({ navigation }) => {
-  const { login } = useContext(AuthContext);
+  const { login, googleLogin } = useContext(AuthContext);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: '283392568548-ckg1v4dk17onir90u0ojqs3p7j0snqu2.apps.googleusercontent.com',
+      offlineAccess: true, 
+    });
+  }, []);
 
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
@@ -43,6 +53,40 @@ const LoginScreen = ({ navigation }) => {
 
     if (!result.success) {
       Alert.alert('Login Failed', result.message);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setGoogleLoading(true);
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      
+      // Get the ID Token
+      const idToken = userInfo.data?.idToken || userInfo.idToken;
+      
+      if (!idToken) {
+        throw new Error('No ID Token received from Google');
+      }
+
+      const result = await googleLogin(idToken);
+      
+      if (!result.success) {
+        Alert.alert('Google Login Failed', result.message);
+      }
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Play Services Not Available', 'Please install or update Google Play Services.');
+      } else {
+        console.error('Google Sign-In Error:', error);
+        Alert.alert('Error', 'An error occurred during Google Sign-In.');
+      }
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -92,8 +136,8 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           <TouchableOpacity
-            style={[s.btn, loading && s.btnDisabled]}
-            disabled={loading}
+            style={[s.btn, (loading || googleLoading) && s.btnDisabled]}
+            disabled={loading || googleLoading}
             onPress={handleLogin}
             activeOpacity={0.8}
           >
@@ -101,6 +145,28 @@ const LoginScreen = ({ navigation }) => {
               <ActivityIndicator color={C.bg} />
             ) : (
               <Text style={s.btnText}>Login</Text>
+            )}
+          </TouchableOpacity>
+
+          <View style={s.dividerWrap}>
+            <View style={s.divider} />
+            <Text style={s.dividerText}>OR</Text>
+            <View style={s.divider} />
+          </View>
+
+          <TouchableOpacity
+            style={[s.googleBtn, (loading || googleLoading) && s.btnDisabled]}
+            disabled={loading || googleLoading}
+            onPress={handleGoogleLogin}
+            activeOpacity={0.8}
+          >
+            {googleLoading ? (
+              <ActivityIndicator color={C.google} />
+            ) : (
+              <View style={s.googleBtnContent}>
+                <FontAwesome5 name="google" size={18} color={C.google} style={s.googleIcon} />
+                <Text style={s.googleBtnText}>Continue with Google</Text>
+              </View>
             )}
           </TouchableOpacity>
 
@@ -121,7 +187,7 @@ const s = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', paddingHorizontal: 30 },
   headerWrap: { alignItems: 'center', marginBottom: 40 },
   logoWrap: {
-    width: 200, height: 200, marginBottom: 10,
+    width: 120, height: 120, marginBottom: 10,
     justifyContent: 'center', alignItems: 'center',
   },
   logo: { width: '100%', height: '100%' },
@@ -154,6 +220,48 @@ const s = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.7 },
   btnText: { color: C.bg, fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
+  dividerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 25,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: C.border,
+  },
+  dividerText: {
+    marginHorizontal: 15,
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.textMuted,
+  },
+  googleBtn: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 16,
+    paddingVertical: 18,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  googleBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  googleIcon: {
+    marginRight: 12,
+  },
+  googleBtnText: {
+    color: C.textDark,
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
   footerWrap: { flexDirection: 'row', justifyContent: 'center', marginTop: 30 },
   footerText: { fontSize: 14, color: C.textMuted },
   footerLink: { fontSize: 14, fontWeight: '700', color: C.primary },

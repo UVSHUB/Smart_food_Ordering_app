@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.uvs.sliitkade"
     },
     "android": {
       "package": "com.uvs.sliitkade",
@@ -35,7 +36,13 @@
         }
       ],
       "./plugins/withAndroidBuildFix",
-      "expo-font"
+      "expo-font",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.283392568548-dummy"
+        }
+      ]
     ],
     "extra": {
       "eas": {
