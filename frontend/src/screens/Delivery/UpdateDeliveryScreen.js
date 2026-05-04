@@ -7,6 +7,7 @@ import {
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../../services/api';
+import MapPickerModal from '../../components/MapPickerModal';
 import { AuthContext } from '../../context/AuthContext';
 
 const STATUSES = ['Pending', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'];
@@ -55,6 +56,7 @@ export default function UpdateDeliveryScreen({ route, navigation }) {
   const [address, setAddress] = useState(delivery.address);
   const [phone,   setPhone]   = useState(delivery.phone);
   const [loading, setLoading] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
 
   const handleUpdate = async () => {
     if (!address.trim()) return Alert.alert('Required', 'Address cannot be empty.');
@@ -152,14 +154,24 @@ export default function UpdateDeliveryScreen({ route, navigation }) {
             <Text style={s.cardLabel}>Contact Details</Text>
 
             <Text style={s.fieldLabel}>Delivery Address</Text>
-            <TextInput
-              style={[s.input, s.inputMulti]}
-              value={address}
-              onChangeText={setAddress}
-              placeholder="Enter delivery address"
-              placeholderTextColor={C.textLight}
-              multiline
-            />
+            <View style={{ position: 'relative' }}>
+              <TextInput
+                style={[s.input, s.inputMulti]}
+                value={address}
+                onChangeText={setAddress}
+                placeholder="Enter delivery address"
+                placeholderTextColor={C.textLight}
+                multiline
+              />
+              <TouchableOpacity 
+                style={s.mapPickerBtn} 
+                onPress={() => setMapVisible(true)}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="map" size={16} color={C.primary} />
+                <Text style={s.mapPickerBtnText}>Select on Map</Text>
+              </TouchableOpacity>
+            </View>
 
             <Text style={[s.fieldLabel, { marginTop: 14 }]}>Phone Number</Text>
             <TextInput
@@ -190,6 +202,12 @@ export default function UpdateDeliveryScreen({ route, navigation }) {
 
           <View style={{ height: 32 }} />
         </ScrollView>
+
+        <MapPickerModal
+          visible={mapVisible}
+          onClose={() => setMapVisible(false)}
+          onLocationSelect={(addr) => setAddress(addr)}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -311,4 +329,20 @@ const s = StyleSheet.create({
     elevation: 5,
   },
   saveBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+
+  // Map Picker Button
+  mapPickerBtn: {
+    position: 'absolute',
+    right: 0,
+    top: -30, // Position it above the input
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 4,
+  },
+  mapPickerBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.primary,
+  },
 });

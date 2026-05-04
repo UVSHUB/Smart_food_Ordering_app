@@ -28,7 +28,7 @@ const LoginScreen = ({ navigation }) => {
 
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: '283392568548-c8jh335khn9k7cu0lgovo7qst5bkpc2v.apps.googleusercontent.com',
+      webClientId: '283392568548-ckg1v4dk17onir90u0ojqs3p7j0snqu2.apps.googleusercontent.com',
       offlineAccess: true, 
     });
   }, []);
@@ -83,7 +83,8 @@ const LoginScreen = ({ navigation }) => {
         Alert.alert('Play Services Not Available', 'Please install or update Google Play Services.');
       } else {
         console.error('Google Sign-In Error:', error);
-        Alert.alert('Error', 'An error occurred during Google Sign-In.');
+        // Show the specific error code to help debugging
+        Alert.alert('Google Sign-In Error', `Code: ${error.code}\nMessage: ${error.message}`);
       }
     } finally {
       setGoogleLoading(false);

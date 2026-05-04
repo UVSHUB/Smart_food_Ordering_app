@@ -8,6 +8,7 @@ import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../../services/api';
 import { AuthContext } from '../../context/AuthContext';
+import MapPickerModal from '../../components/MapPickerModal';
 
 const C = {
   primary:   '#FA4A0C',
@@ -50,6 +51,7 @@ export default function CreateDeliveryScreen({ navigation }) {
   const [address,  setAddress]  = useState('');
   const [phone,    setPhone]    = useState('');
   const [loading,  setLoading]  = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
 
   const handleCreate = async () => {
     if (!orderId.trim()) return Alert.alert('Required', 'Please enter an Order ID.');
@@ -127,14 +129,24 @@ export default function CreateDeliveryScreen({ navigation }) {
 
           <View style={s.card}>
             <Text style={s.cardLabel}>Delivery Details</Text>
-            <Field
-              label="Delivery Address"
-              icon="location-on"
-              value={address}
-              onChangeText={setAddress}
-              placeholder="Street, city, postal code"
-              multiline
-            />
+            <View style={{ position: 'relative' }}>
+              <Field
+                label="Delivery Address"
+                icon="location-on"
+                value={address}
+                onChangeText={setAddress}
+                placeholder="Street, city, postal code"
+                multiline
+              />
+              <TouchableOpacity 
+                style={s.mapPickerBtn} 
+                onPress={() => setMapVisible(true)}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="map" size={16} color={C.primary} />
+                <Text style={s.mapPickerBtnText}>Select on Map</Text>
+              </TouchableOpacity>
+            </View>
             <Field
               label="Phone Number"
               icon="phone"
@@ -171,6 +183,12 @@ export default function CreateDeliveryScreen({ navigation }) {
 
           <View style={{ height: 32 }} />
         </ScrollView>
+
+        <MapPickerModal
+          visible={mapVisible}
+          onClose={() => setMapVisible(false)}
+          onLocationSelect={(addr) => setAddress(addr)}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -272,4 +290,20 @@ const s = StyleSheet.create({
     elevation: 5,
   },
   submitText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+
+  // Map Picker Button
+  mapPickerBtn: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 4,
+  },
+  mapPickerBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.primary,
+  },
 });
