@@ -28,7 +28,7 @@ const LoginScreen = ({ navigation }) => {
 
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: '283392568548-ckg1v4dk17onir90u0ojqs3p7j0snqu2.apps.googleusercontent.com',
+      webClientId: '283392568548-c8jh335khn9k7cu0lgovo7qst5bkpc2v.apps.googleusercontent.com',
       offlineAccess: true, 
     });
   }, []);
