@@ -3,7 +3,8 @@ const generateToken = require('../utils/generateToken');
 const { OAuth2Client } = require('google-auth-library');
 
 // Web Client ID from Google Cloud Console
-const client = new OAuth2Client(process.env.GOOGLE_WEB_CLIENT_ID);
+// OAuth2Client will be initialized inside the function to ensure process.env is loaded
+let client;
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -88,6 +89,7 @@ const loginUser = async (req, res, next) => {
         name: user.name,
         email: user.email,
         isAdmin: user.isAdmin,
+        phone: user.phone || '',
         token: generateToken(user._id),
       });
     } else {
@@ -109,6 +111,15 @@ const googleLogin = async (req, res, next) => {
     if (!idToken) {
       res.status(400);
       throw new Error('ID Token is required');
+    }
+
+    // Initialize client if not already done
+    if (!client) {
+      if (!process.env.GOOGLE_WEB_CLIENT_ID) {
+        console.error('GOOGLE_WEB_CLIENT_ID is missing from environment variables');
+        throw new Error('Google Client ID not configured on server');
+      }
+      client = new OAuth2Client(process.env.GOOGLE_WEB_CLIENT_ID);
     }
 
     // Verify token
@@ -148,13 +159,18 @@ const googleLogin = async (req, res, next) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      phone: user.phone || '',
       picture: picture,
       token: generateToken(user._id),
     });
   } catch (error) {
-    console.error('Google Auth Error:', error);
+    console.error('Google Auth Error Details:', {
+      message: error.message,
+      stack: error.stack,
+      client_id: process.env.GOOGLE_WEB_CLIENT_ID
+    });
     res.status(401);
-    next(new Error('Invalid Google Token'));
+    next(new Error(`Invalid Google Token: ${error.message}`));
   }
 };
 

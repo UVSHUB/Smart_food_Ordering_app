@@ -28,6 +28,7 @@ const EditUserAdminScreen = ({ route, navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -41,6 +42,7 @@ const EditUserAdminScreen = ({ route, navigation }) => {
       setName(data.name);
       setEmail(data.email);
       setIsAdmin(data.isAdmin);
+      setPhone(data.phone || '');
     } catch (err) {
       Alert.alert('Error', 'Failed to fetch user data.');
       navigation.goBack();
@@ -50,9 +52,18 @@ const EditUserAdminScreen = ({ route, navigation }) => {
   };
 
   const handleUpdate = async () => {
+    const trimmedPhone = phone.trim();
+    if (trimmedPhone) {
+      const phoneRegex = /^(0\d{9})$/;
+      if (!phoneRegex.test(trimmedPhone)) {
+        Alert.alert('Invalid Phone', 'Please enter a valid 10-digit Sri Lankan phone number starting with 0 (e.g. 0771234567).');
+        return;
+      }
+    }
+
     setSaving(true);
     try {
-      await axios.put(`${BASE_URL}/users/${userId}`, { name, email, isAdmin });
+      await axios.put(`${BASE_URL}/users/${userId}`, { name, email, isAdmin, phone: trimmedPhone });
       Alert.alert('Success', 'User updated successfully', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (err) {
       Alert.alert('Error', 'Failed to update user.');
@@ -116,6 +127,17 @@ const EditUserAdminScreen = ({ route, navigation }) => {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+            />
+          </View>
+
+          <View style={s.field}>
+            <Text style={s.label}>Phone Number</Text>
+            <TextInput
+              style={s.input}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="e.g. 0771234567"
+              keyboardType="phone-pad"
             />
           </View>
 

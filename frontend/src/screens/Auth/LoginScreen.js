@@ -62,11 +62,11 @@ const LoginScreen = ({ navigation }) => {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       
-      // Get the ID Token
+      // Get the ID Token - handle different versions of the library
       const idToken = userInfo.data?.idToken || userInfo.idToken;
       
       if (!idToken) {
-        throw new Error('No ID Token received from Google');
+        throw new Error('No ID Token received from Google. Ensure you have configured webClientId correctly.');
       }
 
       const result = await googleLogin(idToken);

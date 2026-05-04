@@ -14,6 +14,7 @@ const getUserProfile = async (req, res, next) => {
         name: user.name,
         email: user.email,
         isAdmin: user.isAdmin,
+        phone: user.phone || '',
       });
     } else {
       res.status(404);
@@ -34,6 +35,15 @@ const updateUserProfile = async (req, res, next) => {
     if (user) {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
+      
+      if (req.body.phone !== undefined) {
+        const phoneRegex = /^(0\d{9})$/;
+        if (req.body.phone && !phoneRegex.test(req.body.phone)) {
+          res.status(400);
+          throw new Error('Please enter a valid 10-digit Sri Lankan phone number starting with 0');
+        }
+        user.phone = req.body.phone;
+      }
 
       if (req.body.password) {
         user.password = req.body.password;
@@ -47,6 +57,7 @@ const updateUserProfile = async (req, res, next) => {
         name: updatedUser.name,
         email: updatedUser.email,
         isAdmin: updatedUser.isAdmin,
+        phone: updatedUser.phone || '',
         token: req.headers.authorization.split(' ')[1], // returning the same token or sign a new one
       });
     } else {
@@ -66,8 +77,16 @@ const updateUserById = async (req, res, next) => {
     const user = await User.findById(req.params.id);
 
     if (user) {
-      user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
+      
+      if (req.body.phone !== undefined) {
+        const phoneRegex = /^(0\d{9})$/;
+        if (req.body.phone && !phoneRegex.test(req.body.phone)) {
+          res.status(400);
+          throw new Error('Please enter a valid 10-digit Sri Lankan phone number starting with 0');
+        }
+        user.phone = req.body.phone;
+      }
 
       user.isAdmin = req.body.isAdmin !== undefined ? req.body.isAdmin : user.isAdmin;
 
@@ -83,6 +102,7 @@ const updateUserById = async (req, res, next) => {
         name: updatedUser.name,
         email: updatedUser.email,
         isAdmin: updatedUser.isAdmin,
+        phone: updatedUser.phone || '',
       });
     } else {
       res.status(404);
