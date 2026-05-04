@@ -240,7 +240,6 @@ const FoodDetailScreen = ({ route, navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <FlatList
-        data={reviews}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 140 }}
