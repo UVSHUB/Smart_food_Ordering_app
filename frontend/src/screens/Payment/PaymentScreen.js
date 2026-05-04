@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Alert,
   ActivityIndicator, ScrollView, StatusBar, Platform,
-  TextInput, KeyboardAvoidingView,
+  TextInput, KeyboardAvoidingView, Image
 } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
@@ -22,7 +22,9 @@ const C = {
   surface:   '#FFFFFF',
   textDark:  '#1A1A1A',
   textMuted: '#9A9A9D',
+  textMid:   '#4A4A4D',
   success:   '#22C55E',
+  danger:    '#FF4B4B',
   border:    '#E8E8E8',
 };
 

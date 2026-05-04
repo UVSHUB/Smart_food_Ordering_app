@@ -284,6 +284,13 @@ const FoodDetailScreen = ({ route, navigation }) => {
                 <Text style={s.foodPrice}>Rs. {(food.price || 0).toFixed(2)}</Text>
               </View>
 
+              {food.isAvailable === false && (
+                <View style={s.soldOutBadge}>
+                  <MaterialIcons name="error-outline" size={16} color="#fff" />
+                  <Text style={s.soldOutText}>Currently Out of Stock</Text>
+                </View>
+              )}
+
               {/* Rating Row */}
               <View style={s.ratingRow}>
                 <View style={{ flexDirection: 'row' }}>{renderStars(currentRating)}</View>
@@ -380,13 +387,22 @@ const FoodDetailScreen = ({ route, navigation }) => {
       {/* Sticky Bottom CTA */}
       {userToken && (
         <View style={s.footer}>
-          <TouchableOpacity style={s.addToCartBtn} onPress={handleAddToCart} activeOpacity={0.8}>
-            <MaterialIcons name="add-shopping-cart" size={20} color={C.primary} />
-            <Text style={s.addToCartText}>Add to Cart</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.buyNowBtn} onPress={handleBuyNow} activeOpacity={0.85}>
-            <Text style={s.buyNowText}>Buy Now</Text>
-          </TouchableOpacity>
+          {food.isAvailable === false ? (
+            <View style={s.unavailableFooter}>
+              <MaterialIcons name="block" size={20} color={C.textMuted} />
+              <Text style={s.unavailableText}>This item is currently unavailable</Text>
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity style={s.addToCartBtn} onPress={handleAddToCart} activeOpacity={0.8}>
+                <MaterialIcons name="add-shopping-cart" size={20} color={C.primary} />
+                <Text style={s.addToCartText}>Add to Cart</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.buyNowBtn} onPress={handleBuyNow} activeOpacity={0.85}>
+                <Text style={s.buyNowText}>Buy Now</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       )}
     </View>
@@ -542,6 +558,30 @@ const s = StyleSheet.create({
     shadowColor: C.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
   },
   buyNowText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+
+  soldOutBadge: {
+    backgroundColor: C.danger,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 16,
+    alignSelf: 'flex-start',
+  },
+  soldOutText: { color: '#fff', fontSize: 13, fontWeight: '800' },
+  unavailableFooter: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 16,
+  },
+  unavailableText: { color: C.textMuted, fontSize: 15, fontWeight: '700' },
 });
 
 export default FoodDetailScreen;

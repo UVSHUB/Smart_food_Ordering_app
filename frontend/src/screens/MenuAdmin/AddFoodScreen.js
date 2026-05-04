@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
-  ScrollView, Alert, ActivityIndicator, SafeAreaView, StatusBar, Image, Platform
+  ScrollView, Alert, ActivityIndicator, SafeAreaView, StatusBar, Image, Platform, Switch
 } from 'react-native';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -39,6 +39,7 @@ const AddFoodScreen = ({ navigation }) => {
   const [category, setCategory] = useState('Meals');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
+  const [isAvailable, setIsAvailable] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
@@ -79,6 +80,7 @@ const AddFoodScreen = ({ navigation }) => {
       formData.append('price', parseFloat(price));
       formData.append('category', category);
       formData.append('description', description);
+      formData.append('isAvailable', isAvailable);
 
       if (image) {
         const uriParts = image.uri.split('.');
@@ -217,6 +219,19 @@ const AddFoodScreen = ({ navigation }) => {
               textAlignVertical="top"
             />
           </View>
+
+          <View style={[s.field, s.switchRow]}>
+            <View>
+              <Text style={s.label}>Availability</Text>
+              <Text style={s.switchMeta}>Is this item currently available to order?</Text>
+            </View>
+            <Switch
+              value={isAvailable}
+              onValueChange={setIsAvailable}
+              trackColor={{ false: '#E8E8E8', true: C.primary }}
+              thumbColor={C.surface}
+            />
+          </View>
         </View>
 
         {/* Floating Action Button-like Full Width Button */}
@@ -325,6 +340,17 @@ const s = StyleSheet.create({
   changeImageText: { color: C.primary, fontSize: 14, fontWeight: '700' },
 
   textArea: { height: 120, paddingTop: 16 },
+
+  switchRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: C.border
+  },
+  switchMeta: { fontSize: 12, color: C.textMuted, marginTop: -4 },
 
   footerContainer: {
     position: 'absolute',

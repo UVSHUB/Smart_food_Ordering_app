@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
-  ScrollView, Alert, ActivityIndicator, SafeAreaView, StatusBar, Image, Platform
+  ScrollView, Alert, ActivityIndicator, SafeAreaView, StatusBar, Image, Platform, Switch
 } from 'react-native';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -41,6 +41,7 @@ const EditFoodScreen = ({ route, navigation }) => {
   const [description, setDescription] = useState(food.description || '');
   const [category, setCategory] = useState(food.category || 'Meals');
   const [image, setImage] = useState(food.image || null);
+  const [isAvailable, setIsAvailable] = useState(food.isAvailable !== undefined ? food.isAvailable : true);
   const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
@@ -81,6 +82,7 @@ const EditFoodScreen = ({ route, navigation }) => {
       formData.append('price', Number(price));
       formData.append('description', description);
       formData.append('category', category);
+      formData.append('isAvailable', isAvailable);
 
       // If a new image was picked (it will be an object with assets[0] structure)
       if (image && typeof image === 'object' && image.uri) {
@@ -225,6 +227,19 @@ const EditFoodScreen = ({ route, navigation }) => {
               textAlignVertical="top"
             />
           </View>
+
+          <View style={[s.field, s.switchRow]}>
+            <View>
+              <Text style={s.label}>Availability</Text>
+              <Text style={s.switchMeta}>Is this item currently available to order?</Text>
+            </View>
+            <Switch
+              value={isAvailable}
+              onValueChange={setIsAvailable}
+              trackColor={{ false: '#E8E8E8', true: C.primary }}
+              thumbColor={C.surface}
+            />
+          </View>
         </View>
       </ScrollView>
       
@@ -332,6 +347,17 @@ const s = StyleSheet.create({
   changeImageText: { color: C.primary, fontSize: 14, fontWeight: '700' },
 
   textArea: { height: 120, paddingTop: 16 },
+
+  switchRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: C.border
+  },
+  switchMeta: { fontSize: 12, color: C.textMuted, marginTop: -4 },
 
   footerContainer: {
     position: 'absolute',
