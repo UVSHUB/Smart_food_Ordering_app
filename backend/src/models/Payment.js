@@ -52,6 +52,11 @@ const paymentSchema = new mongoose.Schema(
         qty:   { type: Number },
       },
     ],
+    payment_proof: {
+      type: String,
+      default: '',
+    },
+
   },
   {
     timestamps: true,

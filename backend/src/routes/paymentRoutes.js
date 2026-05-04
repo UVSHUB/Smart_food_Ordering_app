@@ -9,11 +9,13 @@ const {
   cancelPayment,
   deletePayment,
 } = require('../controllers/paymentController');
+const upload = require('../middlewares/uploadMiddleware');
+
 
 // GET /api/payments/user/:userId   → must come BEFORE /:id so it doesn't clash
 router.get('/user/:userId', getUserPayments);
 
-router.post('/', createPayment);
+router.post('/', upload.single('payment_proof'), createPayment);
 router.get('/', getAllPayments);
 router.get('/:id', getPaymentById);
 router.put('/:id', updatePayment);

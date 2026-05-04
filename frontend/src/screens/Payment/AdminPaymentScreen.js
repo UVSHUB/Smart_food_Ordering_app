@@ -1,13 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, StatusBar, Platform, Modal, TextInput
+  ActivityIndicator, Alert, StatusBar, Platform, Modal, TextInput, Image
+
 } from 'react-native';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { BASE_URL } from '../../services/api';
+import { BASE_URL, IMAGE_BASE_URL } from '../../services/api';
+
 
 const C = {
   primary:   '#FA4A0C',
@@ -32,6 +34,9 @@ const AdminPaymentScreen = ({ navigation }) => {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [cancelMessage, setCancelMessage] = useState('');
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
+  const [proofModalVisible, setProofModalVisible] = useState(false);
+  const [selectedProofUrl, setSelectedProofUrl] = useState(null);
+
 
   const fetchPayments = async () => {
     try {
@@ -162,7 +167,22 @@ const AdminPaymentScreen = ({ navigation }) => {
                 </Text>
               </TouchableOpacity>
             )}
+            
+            {/* View Proof Button */}
+            {item.payment_proof ? (
+              <TouchableOpacity 
+                onPress={() => {
+                  setSelectedProofUrl(item.payment_proof);
+                  setProofModalVisible(true);
+                }}
+                style={[s.statusUpdateBtn, { backgroundColor: '#F3F4F6' }]}
+              >
+                <MaterialIcons name="image" size={14} color={C.textDark} style={{ marginRight: 4 }} />
+                <Text style={[s.badgeText, { color: C.textDark }]}>View Proof</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
+
         </View>
 
         <View style={{ alignItems: 'flex-end', gap: 8 }}>
@@ -274,7 +294,33 @@ const AdminPaymentScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+      {/* Proof Preview Modal */}
+      <Modal
+        visible={proofModalVisible}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={s.modalOverlay}>
+          <View style={[s.modalContent, { padding: 0, overflow: 'hidden' }]}>
+            <View style={s.proofModalHeader}>
+              <Text style={s.modalTitle}>Payment Proof</Text>
+              <TouchableOpacity onPress={() => setProofModalVisible(false)}>
+                <MaterialIcons name="close" size={24} color={C.textDark} />
+              </TouchableOpacity>
+            </View>
+            {selectedProofUrl && (
+              <Image 
+                source={{ uri: selectedProofUrl.startsWith('http') ? selectedProofUrl : `${IMAGE_BASE_URL}${selectedProofUrl}` }} 
+                style={s.proofFullImage} 
+                resizeMode="contain"
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
+
   );
 };
 
@@ -404,6 +450,22 @@ const s = StyleSheet.create({
     backgroundColor: C.danger,
   },
   modalConfirmText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  
+  // Proof Modal
+  proofModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  proofFullImage: {
+    width: '100%',
+    height: 400,
+    backgroundColor: '#000',
+  },
 });
+
 
 export default AdminPaymentScreen;

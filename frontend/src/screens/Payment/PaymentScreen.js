@@ -12,6 +12,8 @@ import { useNotifications } from '../../context/NotificationContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../../services/api';
 import MapPickerModal from '../../components/MapPickerModal';
+import * as ImagePicker from 'expo-image-picker';
+
 
 
 const C = {
@@ -46,6 +48,24 @@ const PaymentScreen = ({ navigation, route }) => {
   const [phone,   setPhone]   = useState('');
   const [loading, setLoading] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
+  const [proofImage, setProofImage] = useState(null);
+
+  const pickProofImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'We need camera roll permissions to upload payment proof.');
+      return;
+    }
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setProofImage(result.assets[0]);
+    }
+  };
+
 
 
   const handleConfirmPayment = async () => {
@@ -80,6 +100,12 @@ const PaymentScreen = ({ navigation, route }) => {
       return;
     }
 
+    if (method === 'Online' && !proofImage) {
+      Alert.alert('Proof Required', 'Please upload a screenshot or photo of your payment proof for online transfers.');
+      return;
+    }
+
+
 
     try {
       setLoading(true);
@@ -91,14 +117,28 @@ const PaymentScreen = ({ navigation, route }) => {
         qty:   item.qty,
       }));
 
-      const { data } = await axios.post(`${BASE_URL}/payments`, {
-        user_id:        user._id,
-        amount,
-        payment_method: method,
-        address:        trimmedAddress,
-        phone:          trimmedPhone,
-        items,
+      const formData = new FormData();
+      formData.append('user_id', user._id);
+      formData.append('amount', amount);
+      formData.append('payment_method', method);
+      formData.append('address', trimmedAddress);
+      formData.append('phone', trimmedPhone);
+      formData.append('items', JSON.stringify(items));
+
+      if (method === 'Online' && proofImage) {
+        const uriParts = proofImage.uri.split('.');
+        const fileType = uriParts[uriParts.length - 1];
+        formData.append('payment_proof', {
+          uri: Platform.OS === 'android' ? proofImage.uri : proofImage.uri.replace('file://', ''),
+          name: `proof-${Date.now()}.${fileType}`,
+          type: `image/${fileType}`,
+        });
+      }
+
+      const { data } = await axios.post(`${BASE_URL}/payments`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
+
       
       // Add notification
       addNotification({
@@ -267,6 +307,29 @@ const PaymentScreen = ({ navigation, route }) => {
               )}
             </TouchableOpacity>
           ))}
+
+          {/* Online Transfer Proof Upload */}
+          {method === 'Online' && (
+            <View style={s.proofCard}>
+              <Text style={s.proofTitle}>Payment Proof</Text>
+              <Text style={s.proofSub}>Please upload a screenshot of your bank transfer</Text>
+              
+              {proofImage ? (
+                <View style={s.proofPreviewWrap}>
+                  <Image source={{ uri: proofImage.uri }} style={s.proofPreview} />
+                  <TouchableOpacity style={s.removeProofBtn} onPress={() => setProofImage(null)}>
+                    <MaterialIcons name="cancel" size={24} color={C.danger} />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity style={s.uploadBtn} onPress={pickProofImage}>
+                  <MaterialIcons name="cloud-upload" size={32} color={C.primary} />
+                  <Text style={s.uploadBtnText}>Upload Receipt / Screenshot</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
 
           <View style={{ height: 120 }} />
         </ScrollView>
@@ -455,7 +518,35 @@ const s = StyleSheet.create({
     fontWeight: '700',
     color: C.primary,
   },
+
+  // Proof Upload Styles
+  proofCard: {
+    backgroundColor: C.surface,
+    borderRadius: 18,
+    padding: 20,
+    marginTop: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderStyle: 'dashed',
+  },
+  proofTitle: { fontSize: 15, fontWeight: '800', color: C.textDark, marginBottom: 4 },
+  proofSub: { fontSize: 12, color: C.textMuted, marginBottom: 16 },
+  uploadBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  uploadBtnText: { marginTop: 8, fontSize: 13, color: C.primary, fontWeight: '700' },
+  proofPreviewWrap: { position: 'relative', width: '100%', height: 200, borderRadius: 12, overflow: 'hidden' },
+  proofPreview: { width: '100%', height: '100%', resizeMode: 'cover' },
+  removeProofBtn: { position: 'absolute', top: 8, right: 8, backgroundColor: '#fff', borderRadius: 12 },
 });
+
 
 
 export default PaymentScreen;

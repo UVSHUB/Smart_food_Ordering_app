@@ -5,7 +5,16 @@ const Delivery = require('../models/Delivery');
 // Create a new payment AND auto-create a linked Delivery record
 const createPayment = async (req, res) => {
   try {
-    const { user_id, order_id, amount, payment_method, address, phone, items } = req.body;
+    let { user_id, order_id, amount, payment_method, address, phone, items } = req.body;
+
+    // Handle items if it's sent as a JSON string (typical for multipart/form-data)
+    if (typeof items === 'string') {
+      try {
+        items = JSON.parse(items);
+      } catch (e) {
+        return res.status(400).json({ message: 'Invalid items format.' });
+      }
+    }
 
     if (!user_id || !amount) {
       return res.status(400).json({ message: 'user_id and amount are required.' });
@@ -22,6 +31,10 @@ const createPayment = async (req, res) => {
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: 'Order must contain at least one item.' });
     }
+    if (payment_method === 'Online' && !req.file) {
+      return res.status(400).json({ message: 'Payment proof is required for online transfers.' });
+    }
+
 
     // 1. Create the payment record
     const payment = new Payment({
@@ -34,7 +47,9 @@ const createPayment = async (req, res) => {
       address: address.trim(),
       phone: phone.trim(),
       items: items || [],
+      payment_proof: req.file ? `/uploads/${req.file.filename}` : '',
     });
+
 
     const savedPayment = await payment.save();
 

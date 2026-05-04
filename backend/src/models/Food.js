@@ -23,8 +23,10 @@ const foodSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: true,
+      min: [0.01, 'Price must be greater than 0'],
       default: 0.0,
     },
+
     isAvailable: {
       type: Boolean,
       required: true,

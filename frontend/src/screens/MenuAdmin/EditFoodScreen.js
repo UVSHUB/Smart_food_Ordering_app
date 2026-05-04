@@ -67,10 +67,12 @@ const EditFoodScreen = ({ route, navigation }) => {
       Alert.alert('Missing Fields', 'Please fill in all required fields.');
       return;
     }
-    if (isNaN(parseFloat(price))) {
-      Alert.alert('Invalid Price', 'Please enter a valid number for price.');
+    const priceVal = parseFloat(price);
+    if (isNaN(priceVal) || priceVal <= 0) {
+      Alert.alert('Invalid Price', 'Please enter a price greater than 0.');
       return;
     }
+
 
     try {
       setLoading(true);
